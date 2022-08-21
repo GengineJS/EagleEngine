@@ -4,6 +4,3 @@
 [submodule "android"]
 	path = android
 	url = git@github.com:GengineJS/Eagle-Android.git
-[submodule "xcode"]
-	path = xcode
-	url = git@github.com:GengineJS/Eagle-Xcode.git
