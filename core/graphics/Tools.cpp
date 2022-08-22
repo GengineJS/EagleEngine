@@ -1,3 +1,10 @@
+/*
+ *  Tools.cpp
+ *
+ *  Copyright (c) 2022 by XiangKui Zheng
+ *  This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
+
 #include <graphics/Tools.h>
 #if defined(USE_GFX_VULKAN)
     #include <graphics/vulkan/VKTools.h>

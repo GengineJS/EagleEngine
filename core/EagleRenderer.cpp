@@ -1,3 +1,10 @@
+/*
+ *  EagleRenderer.cpp
+ *
+ *  Copyright (c) 2022 by XiangKui Zheng
+ *  This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
+
 #include "EagleApplication.h"
 #include "EagleRenderer.h"
 namespace eg {

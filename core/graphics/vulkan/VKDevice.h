@@ -1,3 +1,10 @@
+/*
+ *  VKDevice.h
+ *
+ *  Copyright (c) 2022 by XiangKui Zheng
+ *  This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
+
 #pragma once
 #include "vulkan/vulkan.h"
 #include "graphics/Device.h"

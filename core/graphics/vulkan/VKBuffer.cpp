@@ -1,3 +1,10 @@
+/*
+ *  VKBuffer.cpp
+ *
+ *  Copyright (c) 2022 by XiangKui Zheng
+ *  This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
+ */
+
 #include <graphics/vulkan/VKBuffer.h>
 #include <graphics/vulkan/VKTools.h>
 #include <graphics/vulkan/VKContext.h>
