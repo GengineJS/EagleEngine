@@ -19,9 +19,9 @@ namespace eg {
 			RenderResource(ResourceType type);
 			virtual ~RenderResource();
 			// Which passes use the resource
-			std::vector<std::shared_ptr<BaseGraphPass>> inputs{};
+			std::vector<BaseGraphPass*> inputs{};
 			// which passes output the resource
-			std::vector< std::shared_ptr<BaseGraphPass>> outputs{};
+			std::vector<BaseGraphPass*> outputs{};
 			void setType(ResourceType type);
 			inline const std::string& getName() const { return _name; }
 			inline ResourceType getResourceType() const { return _type; }

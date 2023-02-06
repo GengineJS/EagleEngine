@@ -5,6 +5,21 @@ IF(APPLE)
 ENDIF(APPLE)
 file(GLOB BASE_SRC "*.cpp" "*.hpp" "*.h" "../external/imgui/*.cpp")
 file(GLOB BASE_HEADERS "*.hpp" "*.h")
+file(GLOB ENGINE "engine/*.cpp"
+        "engine/*.hpp"
+        "engine/*.h")
+file(GLOB MODULES "modules/*.cpp"
+        "modules/*.hpp"
+        "modules/*.h")
+file(GLOB SCENE "scene/*.cpp"
+        "scene/*.hpp"
+        "scene/*.h"
+        "scene/entity/*.cpp"
+        "scene/entity/*.hpp"
+        "scene/entity/*.h"
+        "scene/component/*.cpp"
+        "scene/component/*.hpp"
+        "scene/component/*.h")
 file(GLOB GRAPHICS "graphics/*.cpp"
         "graphics/*.hpp"
         "graphics/*.h"
@@ -29,7 +44,7 @@ set(KTX_SOURCES
     ${KTX_DIR}/lib/memstream.c
     ${KTX_DIR}/lib/filestream.c)
 
-add_library(core STATIC ${BASE_SRC} ${GRAPHICS} ${UTILS} ${PIPELINE} ${KTX_SOURCES})
+add_library(core STATIC ${BASE_SRC} ${ENGINE} ${MODULES} ${GRAPHICS} ${UTILS} ${PIPELINE} ${KTX_SOURCES})
 if(WIN32)
     target_link_libraries(core ${Vulkan_LIBRARY} ${WINLIBS})
  else(WIN32)

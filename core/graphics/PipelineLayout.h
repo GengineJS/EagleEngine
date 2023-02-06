@@ -20,7 +20,7 @@ namespace eg {
 
         struct PipelineLayoutInfo
         {
-            std::vector< std::shared_ptr<DescriptorSetLayout>> pSetLayouts{};
+            std::vector<DescriptorSetLayout*> pSetLayouts{};
             std::vector<PushConstantRange> pushConstantRanges{};
 
         };

@@ -14,7 +14,7 @@ namespace eg {
 		VKSampler::VKSampler(const SamplerInfo& info)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkSamplerCreateInfo samplerInfo{};
 			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 			samplerInfo.addressModeU = static_cast<VkSamplerAddressMode>(info.addressModeU);
@@ -41,8 +41,8 @@ namespace eg {
 		}
 		VKSampler::~VKSampler()
 		{
-			auto context = std::dynamic_pointer_cast<VKContext>(Context::GetContext());
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto context = dynamic_cast<VKContext*>(Context::GetContext());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			vkDestroySampler(device->getLogicDevice(), _sampler, nullptr);
 		}
 	}

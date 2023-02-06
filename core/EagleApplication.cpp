@@ -21,26 +21,26 @@ void EagleApplication::keyPressed(uint32_t)
 void EagleApplication::mouseMoved(double x, double y, bool& handled) {}
 void EagleApplication::initialize()
 {
-	_renderer->onApplicationInit(shared_from_this());
-	_renderer->onStart();
+	// _renderer->onApplicationInit(this);
+	//- _renderer->onStart();
 	_prepared = true;
 	_isInit = true;
 }
 void EagleApplication::appExit()
 {
 	_prepared = false;
-	_renderer->onApplicationExit(shared_from_this());
+	//- _renderer->onApplicationExit(this);
 }
 void EagleApplication::appPause()
 {
-	_renderer->onApplicationPause();
-	_handler.focused = false;
+	/*- _renderer->onApplicationPause();
+	_handler.focused = false;*/
 	_prepared = false;
 }
 void EagleApplication::appFocus()
 {
-    _renderer->onApplicationFocus();
-	_handler.focused = true;
+    /*- _renderer->onApplicationFocus();
+	_handler.focused = true;*/
 	_prepared = true;
 }
 void EagleApplication::renderLoop()
@@ -66,7 +66,7 @@ void EagleApplication::renderLoop()
 				break;
 			}
 		}
-		if (_prepared && !IsIconic(_handler.window)) {
+		if (_prepared && !IsIconic(EagleWindow::Get()->getHandler().window)) {
 			nextFrame();
 		}
 	}
@@ -190,8 +190,8 @@ void EagleApplication::renderLoop()
 inline void EagleApplication::nextFrame()
 {
 	auto tStart = std::chrono::high_resolution_clock::now();
-	_renderer->onUpdate();
-	_renderer->onRender();
+	//- _renderer->onUpdate();
+	//- _renderer->onRender();
 	_frameCounter++;
 	auto tEnd = std::chrono::high_resolution_clock::now();
 	auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
@@ -210,9 +210,9 @@ inline void EagleApplication::nextFrame()
 	{
 		_lastFPS = static_cast<uint32_t>((float)_frameCounter * (1000.0f / fpsTimer));
 #if defined(_WIN32)
-		if (!_renderer->getContext()->getContextInfo().guiOverlay) {
-			std::string windowTitle = getWindowTitle();
-			SetWindowText(_handler.window, windowTitle.c_str());
+		if (!_engine->getEngineInfo().guiOverlay) {
+			std::string windowTitle = _engine->getEngineInfo().applicationName;
+			SetWindowText(EagleWindow::Get()->getHandler().window, windowTitle.c_str());
 		}
 #endif
 		_frameCounter = 0;
@@ -225,7 +225,7 @@ void EagleApplication::windowResize() {
 		return;
 	}
 	_prepared = false;
-	_renderer->onResize(_destWidth, _destHeight);
+	//- _renderer->onResize(_destWidth, _destHeight);
 	_prepared = true;
 }
 void EagleApplication::handleMouseMove(int32_t x, int32_t y)
@@ -235,7 +235,7 @@ void EagleApplication::handleMouseMove(int32_t x, int32_t y)
 
 	bool handled = false;
 	
-	if (_renderer->getContext()->getContextInfo().guiOverlay) {
+	if (_engine->getEngineInfo().guiOverlay) {
 		ImGuiIO& io = ImGui::GetIO();
 		handled = io.WantCaptureMouse;
 	}
@@ -246,18 +246,18 @@ void EagleApplication::handleMouseMove(int32_t x, int32_t y)
 		return;
 	}
 
-	if (mouseButton.left) {
+	/*if (mouseButton.left) {
 	}
 	if (mouseButton.right) {
 	}
 	if (mouseButton.middle) {
-	}
+	}*/
 	mousePos = glm::vec2((float)x, (float)y);
 }
 
-EagleApplication::EagleApplication(std::shared_ptr<EagleRenderer> renderer)
+EagleApplication::EagleApplication(std::unique_ptr<EagleEngine>&& engine)
 {
-	_renderer = renderer;
+	_engine = std::move(engine);
 }
 
 #if defined(_WIN32)
@@ -292,204 +292,16 @@ void EagleApplication::setupDPIAwareness()
 	}
 }
 
-HWND EagleApplication::setupWindow(HINSTANCE hinstance, WNDPROC wndproc)
+void EagleApplication::setup(HINSTANCE hinstance)
 {
-	_handler.windowInstance = hinstance;
-	const ContextInfo& info = _renderer->getContext()->getContextInfo();
-	WNDCLASSEX wndClass;
-
-	wndClass.cbSize = sizeof(WNDCLASSEX);
-	wndClass.style = CS_HREDRAW | CS_VREDRAW;
-	wndClass.lpfnWndProc = wndproc;
-	wndClass.cbClsExtra = 0;
-	wndClass.cbWndExtra = 0;
-	wndClass.hInstance = hinstance;
-	wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wndClass.lpszMenuName = NULL;
-	wndClass.lpszClassName = info.applicationName.c_str();
-	wndClass.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-
-	if (!RegisterClassEx(&wndClass))
-	{
-		std::cout << "Could not register window class!\n";
-		fflush(stdout);
-		exit(1);
-	}
-
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	bool fullscreen = info.fullscreen;
-	if (fullscreen)
-	{
-		if ((info.width != (uint32_t)screenWidth) && (info.height != (uint32_t)screenHeight))
-		{
-			DEVMODE dmScreenSettings;
-			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-			dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-			dmScreenSettings.dmPelsWidth = info.width;
-			dmScreenSettings.dmPelsHeight = info.height;
-			dmScreenSettings.dmBitsPerPel = 32;
-			dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-			{
-				if (MessageBox(NULL, "Fullscreen Mode not supported!\n Switch to window mode?", "Error", MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
-				{
-					fullscreen = false;
-				}
-				else
-				{
-					return nullptr;
-				}
-			}
-			screenWidth = info.width;
-			screenHeight = info.height;
-		}
-	}
-
-	DWORD dwExStyle;
-	DWORD dwStyle;
-
-	if (fullscreen)
-	{
-		dwExStyle = WS_EX_APPWINDOW;
-		dwStyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-	}
-	else
-	{
-		dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-		dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-	}
-
-	RECT windowRect;
-	windowRect.left = 0L;
-	windowRect.top = 0L;
-	windowRect.right = fullscreen ? (long)screenWidth : (long)info.width;
-	windowRect.bottom = fullscreen ? (long)screenHeight : (long)info.height;
-
-	AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
-
-	std::string windowTitle = getWindowTitle();
-	_handler.window = CreateWindowEx(0,
-		info.applicationName.c_str(),
-		windowTitle.c_str(),
-		dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-		0,
-		0,
-		windowRect.right - windowRect.left,
-		windowRect.bottom - windowRect.top,
-		NULL,
-		NULL,
-		hinstance,
-		NULL);
-
-	if (!fullscreen)
-	{
-		// Center on screen
-		uint32_t x = (GetSystemMetrics(SM_CXSCREEN) - windowRect.right) / 2;
-		uint32_t y = (GetSystemMetrics(SM_CYSCREEN) - windowRect.bottom) / 2;
-		SetWindowPos(_handler.window, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-	}
-
-	if (!_handler.window)
-	{
-		printf("Could not create window!\n");
-		fflush(stdout);
-		return nullptr;
-	}
-
-	ShowWindow(_handler.window, SW_SHOW);
-	SetForegroundWindow(_handler.window);
-	SetFocus(_handler.window);
-	return _handler.window;
+	EagleWindow::Get()->setup(hinstance);
+	_engine->execute();
 }
 
-void EagleApplication::handleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	switch (uMsg)
-	{
-	case WM_CLOSE:
-		appExit();
-		DestroyWindow(hWnd);
-		PostQuitMessage(0);
-		break;
-	case WM_PAINT:
-		ValidateRect(_handler.window, NULL);
-		break;
-	case WM_KEYDOWN:
-		switch (wParam)
-		{
-		case KEY_P:
-			_paused = !_paused;
-			break;
-		case KEY_F1:
-			break;
-		case KEY_ESCAPE:
-			PostQuitMessage(0);
-			break;
-		}
-		keyPressed((uint32_t)wParam);
-		break;
-	case WM_KEYUP:
-		break;
-	case WM_LBUTTONDOWN:
-		mousePos = glm::vec2((float)LOWORD(lParam), (float)HIWORD(lParam));
-		mouseButton.left = true;
-		break;
-	case WM_RBUTTONDOWN:
-		mousePos = glm::vec2((float)LOWORD(lParam), (float)HIWORD(lParam));
-		mouseButton.right = true;
-		break;
-	case WM_MBUTTONDOWN:
-		mousePos = glm::vec2((float)LOWORD(lParam), (float)HIWORD(lParam));
-		mouseButton.middle = true;
-		break;
-	case WM_LBUTTONUP:
-		mouseButton.left = false;
-		break;
-	case WM_RBUTTONUP:
-		mouseButton.right = false;
-		break;
-	case WM_MBUTTONUP:
-		mouseButton.middle = false;
-		break;
-	case WM_MOUSEWHEEL:
-	{
-		short wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-		break;
-	}
-	case WM_MOUSEMOVE:
-	{
-		handleMouseMove(LOWORD(lParam), HIWORD(lParam));
-		break;
-	}
-	case WM_SIZE:
-		if ((_prepared) && (wParam != SIZE_MINIMIZED))
-		{
-			if ((_resizing) || ((wParam == SIZE_MAXIMIZED) || (wParam == SIZE_RESTORED)))
-			{
-				_destWidth = LOWORD(lParam);
-				_destHeight = HIWORD(lParam);
-				windowResize();
-			}
-		}
-		break;
-	case WM_GETMINMAXINFO:
-	{
-		LPMINMAXINFO minMaxInfo = (LPMINMAXINFO)lParam;
-		minMaxInfo->ptMinTrackSize.x = 64;
-		minMaxInfo->ptMinTrackSize.y = 64;
-		break;
-	}
-	case WM_ENTERSIZEMOVE:
-		_resizing = true;
-		break;
-	case WM_EXITSIZEMOVE:
-		_resizing = false;
-		break;
-	}
-}
+//void EagleApplication::handleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+//{
+//	
+//}
 #elif defined(USE_PLATFORM_ANDROID_KHR)
 int32_t EagleApplication::handleAppInput(struct android_app* app, AInputEvent* event)
 {

@@ -21,7 +21,7 @@ namespace eg {
             void resize(uint64_t size) override;
             inline const VkBuffer& getVkBuffer() const { return _buffer; }
             inline const VkDeviceMemory& getDeviceMemory() const { return _mem; }
-            void copyBuffer(std::shared_ptr<Buffer> src) override;
+            void copyBuffer(Buffer* src) override;
         protected:
             void _create();
             void _destroy();

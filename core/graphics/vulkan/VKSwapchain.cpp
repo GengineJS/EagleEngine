@@ -10,12 +10,14 @@
 #include <graphics/vulkan/VKDevice.h>
 #include <graphics/vulkan/VKTexture.h>
 #include <graphics/vulkan/VKCommandBuffer.h>
+#include <iostream>
+#include <engine/EagleEngine.h>
 namespace eg {
 	namespace graphics {
 		VKSwapchain::VKSwapchain(): Swapchain()
 		{
-			auto context = std::dynamic_pointer_cast<VKContext>(Context::GetContext());
-			VkDevice device = std::dynamic_pointer_cast<VKDevice>(context->getDevice())->getLogicDevice();
+			auto context = dynamic_cast<VKContext*>(Context::GetContext());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get())->getLogicDevice();
 			_fpGetPhysicalDeviceSurfaceSupportKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceSupportKHR>(vkGetInstanceProcAddr(context->getVkInstance(), "vkGetPhysicalDeviceSurfaceSupportKHR"));
 			_fpGetPhysicalDeviceSurfaceCapabilitiesKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR>(vkGetInstanceProcAddr(context->getVkInstance(), "vkGetPhysicalDeviceSurfaceCapabilitiesKHR"));
 			_fpGetPhysicalDeviceSurfaceFormatsKHR = reinterpret_cast<PFN_vkGetPhysicalDeviceSurfaceFormatsKHR>(vkGetInstanceProcAddr(context->getVkInstance(), "vkGetPhysicalDeviceSurfaceFormatsKHR"));
@@ -40,16 +42,18 @@ namespace eg {
 		VKSwapchain::~VKSwapchain()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkDevice logicDevice = device->getLogicDevice();
+			vkDestroySemaphore(logicDevice, _semaphores.presentComplete, nullptr);
+			vkDestroySemaphore(logicDevice, _semaphores.renderComplete, nullptr);
 			_fpDestroySwapchainKHR(logicDevice, _vkSwapChain, nullptr);
 			_vkSwapChain = VK_NULL_HANDLE;
 			destroy();
 		}
 
-		void VKSwapchain::_initSurface(const AppHandler& handler) {
+		void VKSwapchain::_initSurface(const WindowHandler& handler) {
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			SurfaceInfo surInfo{};
 			// Create the os-specific surface
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
@@ -72,9 +76,9 @@ namespace eg {
 			surInfo.width = handler.width;
 			surInfo.height = handler.height;
 #endif
-			_surface = std::make_shared<VKSurface>(surInfo);
-			VkSurfaceKHR vkSurface = std::dynamic_pointer_cast<VKSurface>(_surface)->getVkSurfaceKHR();
-			VkPhysicalDevice physicalDevice = std::dynamic_pointer_cast<VKDevice>(context->getDevice())->getPhysicalDevice();
+			_surface = std::make_unique<VKSurface>(surInfo);
+			VkSurfaceKHR vkSurface = dynamic_cast<VKSurface*>(_surface.get())->getVkSurfaceKHR();
+			VkPhysicalDevice physicalDevice = dynamic_cast<VKDevice*>(context->getDevice().get())->getPhysicalDevice();
 			// Get available queue family properties
 			uint32_t queueCount;
 			vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, NULL);
@@ -182,7 +186,7 @@ namespace eg {
 			}
 		}
 
-		void VKSwapchain::create(const AppHandler& handler)
+		void VKSwapchain::create(const WindowHandler& handler)
 		{
 		    // Store the current swap chain handle so we can use it later on to ease up recreation
 		    // TODO: There is a problem with android reusing swapchain
@@ -190,8 +194,8 @@ namespace eg {
 			if(!_surface) _initSurface(handler);
 
 			auto context = Context::GetContext();
-			VkSurfaceKHR vkSurface = std::dynamic_pointer_cast<VKSurface>(_surface)->getVkSurfaceKHR();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			VkSurfaceKHR vkSurface = dynamic_cast<VKSurface*>(_surface.get())->getVkSurfaceKHR();
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkDevice logicDevice = device->getLogicDevice();
 			VkPhysicalDevice physicalDevice = device->getPhysicalDevice();
 			// Get physical device surface properties and formats
@@ -207,20 +211,21 @@ namespace eg {
 			VK_CHECK_RESULT(_fpGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, vkSurface, &presentModeCount, presentModes.data()));
 
 			VkExtent2D swapchainExtent{};
+			auto& info = EagleEngine::Get()->getEngineInfo();
 			// If width (and height) equals the special value 0xFFFFFFFF, the size of the surface will be set by the swapchain
 			if (surfCaps.currentExtent.width == std::numeric_limits<uint32_t>::max())
 			{
 				// If the surface size is undefined, the size is set to
 				// the size of the images requested.
-				swapchainExtent.width = context->getContextInfo().width;
-				swapchainExtent.height = context->getContextInfo().height;
+				swapchainExtent.width = info.width;
+				swapchainExtent.height = info.height;
 			}
 			else
 			{
 				// If the surface size is defined, the swap chain size must match
 				swapchainExtent = surfCaps.currentExtent;
-				context->getContextInfo().width = surfCaps.currentExtent.width;
-				context->getContextInfo().height = surfCaps.currentExtent.height;
+				info.width = surfCaps.currentExtent.width;
+				info.height = surfCaps.currentExtent.height;
 			}
 			_width = swapchainExtent.width;
 			_height = swapchainExtent.height;
@@ -233,7 +238,7 @@ namespace eg {
 
 			// If v-sync is not requested, try to find a mailbox mode
 			// It's the lowest latency non-tearing present mode available
-			if (!context->getContextInfo().vsync)
+			if (!info.vsync)
 			{
 				for (size_t i = 0; i < presentModeCount; i++)
 				{
@@ -330,13 +335,13 @@ namespace eg {
 				texInfo.width = swapchainExtent.width;
 				texInfo.height = swapchainExtent.height;
 				auto tex = device->createTexture(texInfo, img);
-				std::dynamic_pointer_cast<VKTexture>(tex)->_isSwapchain = true;
-				_textures.emplace_back(tex);
+				dynamic_cast<VKTexture*>(tex.get())->_isSwapchain = true;
+				textures.emplace_back(std::move(tex));
 			}
 			VkFenceCreateInfo fenceInfo{};
 			fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 			fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-			_waitFences.resize(_textures.size());
+			_waitFences.resize(textures.size());
 			for (auto& fence : _waitFences) {
 				VK_CHECK_RESULT(vkCreateFence(logicDevice, &fenceInfo, nullptr, &fence));
 			}
@@ -344,6 +349,12 @@ namespace eg {
 		void VKSwapchain::destroy()
 		{
 			Swapchain::destroy();
+			auto context = Context::GetContext();
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			VkDevice logicDevice = device->getLogicDevice();
+			for (auto& fence: _waitFences) {
+				vkDestroyFence(logicDevice, fence, nullptr);
+			}
 			_waitFences.clear();
 			_currTextureIdx = 0;
 			_currFrameIdx = 0;
@@ -351,8 +362,8 @@ namespace eg {
 		void VKSwapchain::acquireFrame()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			VkDevice logicDevice = device->getLogicDevice();
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			auto& logicDevice = device->getLogicDevice();
 			vkWaitForFences(logicDevice, 1, &_waitFences[_currFrameIdx], VK_TRUE, UINT64_MAX);
 			VkResult result = _fpAcquireNextImageKHR(logicDevice, _vkSwapChain, UINT64_MAX, _semaphores.presentComplete, VK_NULL_HANDLE, &_currTextureIdx);
 
@@ -365,11 +376,11 @@ namespace eg {
 			vkResetFences(logicDevice, 1, &_waitFences[_currFrameIdx]);
 		}
 		// TODO: present command buffer list
-		void VKSwapchain::presentFrame(std::shared_ptr<CommandBuffer> cmdBuff)
+		void VKSwapchain::presentFrame(const std::unique_ptr<CommandBuffer>& cmdBuff)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			VkDevice logicDevice = device->getLogicDevice();
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			auto& logicDevice = device->getLogicDevice();
 			VkSubmitInfo submitInfo{};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -380,7 +391,7 @@ namespace eg {
 			submitInfo.pWaitDstStageMask = waitStages;
 
 			submitInfo.commandBufferCount = 1;
-			auto vkCmdBuff = std::dynamic_pointer_cast<VKCommandBuffer>(cmdBuff);
+			auto vkCmdBuff = dynamic_cast<VKCommandBuffer*>(cmdBuff.get());
 			submitInfo.pCommandBuffers = &vkCmdBuff->getVkCmdBuffer();
 
 			VkSemaphore signalSemaphores[] = { _semaphores.renderComplete };
@@ -411,7 +422,7 @@ namespace eg {
 				throw std::runtime_error("failed to present swap chain image!");
 			}
 
-			_currFrameIdx = (_currFrameIdx + 1) % static_cast<int32_t>(_textures.size());
+			_currFrameIdx = (_currFrameIdx + 1) % static_cast<int32_t>(textures.size());
 		}
 	}
 }

@@ -56,6 +56,8 @@ namespace eg {
 		}
 		void VKVertexInput::destroy()
 		{
+			vkBindings.clear();
+			vkAttrs.clear();
 		}
 	}
 }

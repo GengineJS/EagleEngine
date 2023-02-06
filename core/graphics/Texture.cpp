@@ -13,7 +13,7 @@ namespace eg {
         void Texture::create() {}
         Texture::~Texture() {
         }
-        std::shared_ptr<Sampler> Texture::createSampler(const SamplerInfo& info) {
+        const std::unique_ptr<Sampler>& Texture::createSampler(const SamplerInfo& info) {
             _sampler = Context::GetContext()->getDevice()->createSampler(info);
             return _sampler;
         }

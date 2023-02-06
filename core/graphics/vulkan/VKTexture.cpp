@@ -18,7 +18,7 @@ namespace eg {
 		void VKTexture::create()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkImageCreateInfo imgInfo{};
 			imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 			imgInfo.extent = { _info.width, _info.height, _info.depth };
@@ -69,7 +69,7 @@ namespace eg {
 		{
 			if (!_image) _image = image;
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkImageViewCreateInfo viewInfo{};
 			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			viewInfo.image = image;
@@ -90,7 +90,7 @@ namespace eg {
 
 		VKTexture::~VKTexture() {
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			auto logicDevice = device->getLogicDevice();
 
 			// If the current image is all swapchain, it can not be released
@@ -141,7 +141,7 @@ namespace eg {
 
 			// We prefer using staging to copy the texture data to a device local optimal image
 			VkBool32 useStaging = true;
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			// Only use linear tiling if forced
 			bool forceLinearTiling = false;
 			if (forceLinearTiling) {
@@ -158,7 +158,8 @@ namespace eg {
 				buffInfo.usage = BufferUsageFlag::TRANSFER_SRC;
 				buffInfo.sharing = SharingMode::EXCLUSIVE;
 				buffInfo.memProp = MemoryPropertyFlag::HOST_VISIBLE | MemoryPropertyFlag::HOST_COHERENT;
-				auto vkBuffer = std::dynamic_pointer_cast<VKBuffer>(device->createBuffer(buffInfo));
+				auto stageBuff = device->createBuffer(buffInfo);
+				auto vkBuffer = dynamic_cast<VKBuffer*>(stageBuff.get());
 				vkBuffer->update(ktxTextureData, ktxTextureSize, 0);
 				// Setup buffer copy regions for each mip level
 				std::vector<VkBufferImageCopy> bufferCopyRegions;
@@ -190,7 +191,7 @@ namespace eg {
 
 				CommandBufferInfo cmdInfo{};
 				cmdInfo.queueIdx = device->getQueueFamilyIndices().graphics;
-				std::shared_ptr<VKCommandBuffer> cmdBuff = std::make_shared<VKCommandBuffer>(cmdInfo);
+				auto cmdBuff = std::make_unique<VKCommandBuffer>(cmdInfo);
 				cmdBuff->beginSingleTimeCommand();
 
 				// Image memory barriers for the texture image
@@ -295,7 +296,7 @@ namespace eg {
 
 				CommandBufferInfo cmdInfo{};
 				cmdInfo.queueIdx = device->getQueueFamilyIndices().graphics;
-				std::shared_ptr<VKCommandBuffer> cmdBuff = std::make_shared<VKCommandBuffer>(cmdInfo);
+				auto cmdBuff = std::make_unique<VKCommandBuffer>(cmdInfo);
 				cmdBuff->beginSingleTimeCommand();
 
 				// Insert a memory dependency at the proper pipeline stages that will execute the image layout transition

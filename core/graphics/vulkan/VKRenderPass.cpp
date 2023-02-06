@@ -15,7 +15,7 @@ namespace eg {
 		VKRenderPass::VKRenderPass(const RenderPassInfo& info):RenderPass(info)
 		{
             auto context = Context::GetContext();
-            auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+            auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			if (!_info.colorAttachments.size()) {
 				_info.colorAttachments.emplace_back(ColorAttachment{});
 			}
@@ -142,7 +142,7 @@ namespace eg {
 		void VKRenderPass::destroy()
 		{	
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			vkDestroyRenderPass(device->getLogicDevice(), _vkRenderPass, nullptr);
 		}
 	}

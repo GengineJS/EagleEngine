@@ -18,9 +18,9 @@
 namespace eg {
 	namespace graphics {
 		struct DescriptorSetInfo {
-			std::shared_ptr<DescriptorPool> descPool{ nullptr };
+			DescriptorPool* descPool{ nullptr };
 			uint32_t descSetCount{ 1 };
-			std::vector<std::shared_ptr<DescriptorSetLayout>> setLayouts{};
+			std::vector<DescriptorSetLayout*> setLayouts{};
 		};
 
 		class DescriptorSet {
@@ -30,37 +30,39 @@ namespace eg {
 			virtual ~DescriptorSet();
 			virtual void create() = 0;
 			inline const DescriptorSetInfo& getDescriptorSetInfo() const { return _info; }
-			std::shared_ptr<Buffer> getBuffer(uint32_t binding) const;
-			std::shared_ptr<Texture> getTexture(uint32_t binding) const;
-			std::shared_ptr<PipelineLayout> getPipelineLayout() const;
+			Buffer* getBuffer(uint32_t binding) const;
+			Texture* getTexture(uint32_t binding) const;
+			PipelineLayout* getPipelineLayout() const;
 			virtual void destroy() = 0;
 
-			void setBuffers(const std::unordered_map<uint32_t, std::shared_ptr<Buffer>>&);
-			void setTextures(const std::unordered_map<uint32_t, std::shared_ptr<Texture>>&);
-			void bindBuffer(uint32_t binding, std::shared_ptr<Buffer>);
-			void bindTexture(uint32_t binding, std::shared_ptr<Texture>);
+			void setBuffers(const std::unordered_map<uint32_t, Buffer*>&);
+			void setTextures(const std::unordered_map<uint32_t, Texture*>&);
+			void bindBuffer(uint32_t binding, Buffer*);
+			void bindTexture(uint32_t binding, Texture*);
 			void remove(uint32_t binding);
 			void clear();
 			virtual void flush();
 		protected:
 			DescriptorSetInfo _info{};
-			std::shared_ptr<PipelineLayout> _pipLayout{ nullptr };
+			std::unique_ptr<DescriptorPool> _descPool{ nullptr };
+			std::vector<std::unique_ptr<DescriptorSetLayout>> _descLayouts{};
+			std::unique_ptr<PipelineLayout> _pipLayout{ nullptr };
 			struct WriteDescriptorSet
 			{
 				uint32_t       dstBinding;
 				uint32_t       dstArrayElement{ 0 };
 				uint32_t       descCount{ 1 };
 				DescriptorType descType;
-				std::shared_ptr<Texture>	pTex{nullptr};
-				std::shared_ptr<Buffer>	   pBuff{ nullptr };
-				std::shared_ptr<BufferView>    pBuffView{ nullptr };
+				Texture*	pTex{nullptr};
+				Buffer*	   pBuff{ nullptr };
+				BufferView*    pBuffView{ nullptr };
 			};
 			std::vector<WriteDescriptorSet> _descWrites{};
 			// binding and buffer
-			std::unordered_map<uint32_t, std::shared_ptr<Buffer>> _buffers{};
-			std::unordered_map<uint32_t, std::shared_ptr<Texture>> _textures{};
+			std::unordered_map<uint32_t, Buffer*> _buffers{};
+			std::unordered_map<uint32_t, Texture*> _textures{};
 			// TODO
-			std::unordered_map<uint32_t, std::shared_ptr<BufferView>> _buffViews{};
+			std::unordered_map<uint32_t, BufferView*> _buffViews{};
 		};
 	}
 }

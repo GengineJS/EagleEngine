@@ -19,18 +19,18 @@ namespace eg {
 		VKGraphicsPipeline::VKGraphicsPipeline(const GraphicsPipelineInfo& info): GraphicsPipeline(info)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			auto swapchain = std::dynamic_pointer_cast<VKSwapchain>(context->getSwapchain());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			auto swapchain = dynamic_cast<VKSwapchain*>(context->getSwapchain().get());
 			assert(_info.shader && _info.vertexInput && _info.pipelineLayout && _info.renderPass);
-			auto shader = std::dynamic_pointer_cast<VKShaderStage>(_info.shader);
-			auto vi = std::dynamic_pointer_cast<VKVertexInput>(_info.vertexInput);
-			auto pipLayout = std::dynamic_pointer_cast<VKPipelineLayout>(_info.pipelineLayout);
-			auto renderPass = std::dynamic_pointer_cast<VKRenderPass>(_info.renderPass);
+			auto shader = dynamic_cast<VKShaderStage*>(_info.shader);
+			auto vi = dynamic_cast<VKVertexInput*>(_info.vertexInput);
+			auto pipLayout = dynamic_cast<VKPipelineLayout*>(_info.pipelineLayout);
+			auto renderPass = dynamic_cast<VKRenderPass*>(_info.renderPass);
 			VkGraphicsPipelineCreateInfo pipelineInfo{};
 			pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 			pipelineInfo.basePipelineIndex = _info.basePipelineIdx;
 			if (_info.basePipeline) {
-				pipelineInfo.basePipelineHandle = std::dynamic_pointer_cast<VKGraphicsPipeline>(_info.basePipeline)->getVkPipeline();
+				pipelineInfo.basePipelineHandle = dynamic_cast<VKGraphicsPipeline*>(_info.basePipeline)->getVkPipeline();
 			}
 			pipelineInfo.layout = pipLayout->getVkPipelineLayout();
 			
@@ -129,7 +129,7 @@ namespace eg {
 			multiSampleStateInfo.sampleShadingEnable = _info.multiSample.isSampleShading;
 			multiSampleStateInfo.rasterizationSamples = static_cast<VkSampleCountFlagBits>(_info.multiSample.rasterizationSamples);
 			multiSampleStateInfo.minSampleShading = _info.multiSample.minSampleShading;
-			multiSampleStateInfo.pSampleMask = _info.multiSample.sampleMask.get();
+			multiSampleStateInfo.pSampleMask = _info.multiSample.sampleMask;
 			multiSampleStateInfo.alphaToCoverageEnable = _info.multiSample.isAlphaToCoverage;
 			multiSampleStateInfo.alphaToOneEnable = _info.multiSample.isAlphaToOne;
 			pipelineInfo.pMultisampleState = &multiSampleStateInfo;
@@ -150,7 +150,7 @@ namespace eg {
 			
 			
 			pipelineInfo.pVertexInputState = &vi->getVkVertexInputStateInfo();
-			auto vkIa = std::dynamic_pointer_cast<VKInputAssembler>(vi->getInputAssembler());
+			auto vkIa = dynamic_cast<VKInputAssembler*>(vi->getInputAssembler().get());
 			pipelineInfo.pInputAssemblyState = &vkIa->getVkInputAssemblyState();
 
 			VkViewport viewport{};
@@ -173,7 +173,7 @@ namespace eg {
 			if (!_pipelineCache) {
 				_createPipelineCache();
 			}
-			VK_CHECK_RESULT(vkCreateGraphicsPipelines(device->getLogicDevice(), _pipelineCache, 1, &pipelineInfo, nullptr, &_pipeline));
+			VK_CHECK_RESULT(vkCreateGraphicsPipelines(device->getLogicDevice(), _pipelineCache, 1, &pipelineInfo, nullptr, &pipeline));
 		}
 		VKGraphicsPipeline::~VKGraphicsPipeline()
 		{
@@ -181,7 +181,7 @@ namespace eg {
 		}
 		void VKGraphicsPipeline::_createPipelineCache() {
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkPipelineCacheCreateInfo pipelineCacheInfo{};
 			pipelineCacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 			vkCreatePipelineCache(device->getLogicDevice(), &pipelineCacheInfo, nullptr, &_pipelineCache);
@@ -189,8 +189,8 @@ namespace eg {
 		void VKGraphicsPipeline::destroy()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			vkDestroyPipeline(device->getLogicDevice(), _pipeline, nullptr);
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			vkDestroyPipeline(device->getLogicDevice(), pipeline, nullptr);
 			vkDestroyPipelineCache(device->getLogicDevice(), _pipelineCache, nullptr);
 		}
 	}

@@ -14,25 +14,25 @@ namespace eg {
 		GraphCompiler::~GraphCompiler()
 		{
 		}
-		void GraphCompiler::compie(std::shared_ptr<GraphContext> context)
+		void GraphCompiler::compie(const std::unique_ptr<GraphContext>& context)
 		{
 			// clear resources and set valid to false
-			if (_context) {
+			/*if (_context) {
                 _context->resetPasses();
 				_context->clearResources();
-			}
-			_context = context;
+			}*/
+			_context = context.get();
 			auto renderGraph = context->getRenderGraph();
-			auto screenPasses = renderGraph->getScreenPasses();
+			auto& screenPasses = renderGraph->getScreenPasses();
 			assert(screenPasses.size());
-			for (auto kv: screenPasses) {
-				auto graphPass = kv.second;
-				_linkPasses(graphPass);
+			for (auto& kv: screenPasses) {
+				auto& graphPass = kv.second;
+				_linkPasses(graphPass.get());
 			}
 		}
-		void GraphCompiler::_linkPasses(std::shared_ptr<BaseGraphPass> pass)
+		void GraphCompiler::_linkPasses(const BaseGraphPass* pass)
 		{
-			for (auto resource : pass->inputs) {
+			for (auto& resource : pass->inputs) {
 				for (auto curPass: resource->outputs) {
 					// The same resource may be used multiple times by the same pass
 					if (!curPass->getValid()) {
@@ -41,8 +41,8 @@ namespace eg {
 				 }
 			}
 			if (!pass->getValid()) {
-				pass->isValid(true);
-				_context->addPass(std::make_shared<DeviceGraphPass>(pass, _context));
+				const_cast<BaseGraphPass*>(pass)->isValid(true);
+				_context->addPass(std::make_unique<DeviceGraphPass>(pass, _context));
 			}
 		}
 	}

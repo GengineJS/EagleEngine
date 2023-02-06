@@ -16,12 +16,13 @@ namespace eg {
 		VKDescriptorSetLayout::VKDescriptorSetLayout(const DescriptorSetLayoutInfo& info): DescriptorSetLayout(info)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			std::vector<VkDescriptorSetLayoutBinding> vkLayoutBinds{};
 			for (auto& bind: _info.bindings) {
 				std::vector<VkSampler> samplers{};
-				for (auto sampler: bind.immutableSamplers) {
-					auto vkSampler = std::dynamic_pointer_cast<VKSampler>(sampler);
+				auto& imSamplers = bind.immutableSamplers;
+				for (auto sampler: imSamplers) {
+					auto vkSampler = dynamic_cast<VKSampler*>(sampler);
 					samplers.emplace_back(vkSampler->getVkSampler());
 				}
 				vkLayoutBinds.emplace_back(VkDescriptorSetLayoutBinding{
@@ -38,7 +39,7 @@ namespace eg {
 			layoutInfo.pBindings = vkLayoutBinds.data();
 			layoutInfo.flags = static_cast<VkDescriptorSetLayoutCreateFlags>(info.flag);
 
-			VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device->getLogicDevice(), &layoutInfo, nullptr, &_layout));
+			VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device->getLogicDevice(), &layoutInfo, nullptr, &layout));
 		}
 		VKDescriptorSetLayout::~VKDescriptorSetLayout()
 		{
@@ -47,8 +48,8 @@ namespace eg {
 		void VKDescriptorSetLayout::destroy()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			vkDestroyDescriptorSetLayout(device->getLogicDevice(), _layout, nullptr);
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			vkDestroyDescriptorSetLayout(device->getLogicDevice(), layout, nullptr);
 		}
 	}
 }

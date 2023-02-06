@@ -65,16 +65,16 @@ namespace eg {
             Texture() = default;
             Texture(const TextureInfo& info);
             virtual void create();
-            virtual std::shared_ptr<Sampler> createSampler(const SamplerInfo& info = {});
+            virtual const std::unique_ptr<Sampler>& createSampler(const SamplerInfo& info = {});
             virtual ~Texture();
             inline const TextureInfo& getTextureInfo() const { return _info; }
             virtual void loadTexture(const std::string& filePath) = 0;
             inline const uint64_t getSize() const { return _size; }
-            inline std::shared_ptr<Sampler> getSampler() const { return _sampler; }
+            inline const std::unique_ptr<Sampler>& getSampler() const { return _sampler; }
         protected:
             TextureInfo _info{};
             uint64_t _size{ 0 };
-            std::shared_ptr<Sampler> _sampler{ nullptr };
+            std::unique_ptr<Sampler> _sampler{ nullptr };
             void* _data{ nullptr };
         };
     }

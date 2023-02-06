@@ -15,12 +15,12 @@ namespace eg {
 	namespace graphics {
 		VKFramebuffer::VKFramebuffer(const FramebufferInfo& info) : Framebuffer(info)
 		{
-			auto context = std::dynamic_pointer_cast<VKContext>(Context::GetContext());
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			auto vkRenderPass = std::dynamic_pointer_cast<VKRenderPass>(info.renderPass);
+			auto context = dynamic_cast<VKContext*>(Context::GetContext());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			auto vkRenderPass = dynamic_cast<VKRenderPass*>(info.renderPass);
 			std::vector<VkImageView> attachments{};
 			for (auto tex : info.pAttachments) {
-				auto vkTex = std::dynamic_pointer_cast<VKTexture>(tex);
+				auto vkTex = dynamic_cast<VKTexture*>(tex);
 				attachments.emplace_back(vkTex->getVkImageView());
 			}
 			VkFramebufferCreateInfo fboInfo{};
@@ -41,7 +41,7 @@ namespace eg {
 		void VKFramebuffer::destroy()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			vkDestroyFramebuffer(device->getLogicDevice(), _vkFramebuffer, nullptr);
 		}
 	}

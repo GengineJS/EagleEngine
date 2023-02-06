@@ -20,17 +20,17 @@ namespace eg {
             void beginCommandBuffer() override;
             void beginRenderPass(const RenderPassBeginInfo& info) override;
             void bindDescriptorSets(const BindDescriptorInfo& info) override;
-            void bindDescriptorSets(uint32_t set, std::shared_ptr<DescriptorSet> ds) override;
+            void bindDescriptorSets(uint32_t set, DescriptorSet* ds) override;
             void bindPipeline(const BindPipelineInfo& info) override;
-            void bindPipeline(std::shared_ptr<GraphicsPipeline> pipeline, PipelineBindPoint bindPoint = PipelineBindPoint::GRAPHICS) override;
-            void copyTexture(std::shared_ptr<Texture> srcTex, std::shared_ptr<Texture> dstTex) override;
+            void bindPipeline(GraphicsPipeline* pipeline, PipelineBindPoint bindPoint = PipelineBindPoint::GRAPHICS) override;
+            void copyTexture(Texture* srcTex, Texture* dstTex) override;
             void setViewport(const Viewport& viewport, uint32_t firstViewport = 0, uint32_t viewportCount = 1) override;
             void setLineWidth(const float lineWidth) override;
             void setBlendConstants(const Vector4& constant) override;
             void setDepthBias(const Vector3& bias) override;
             void setDepthBounds(const Vector2& bounds) override;
             void setScissor(const Rect2D& scissor, uint32_t firstScissor = 0, uint32_t scissorCount = 1) override;
-            void draw(const std::shared_ptr<VertexInput> vi) override;
+            void draw(VertexInput* vi) override;
             void endRenderPass() override;
             void endCommandBuffer() override;
             const VkCommandBuffer& getVkCmdBuffer() const { return _cmdBuffer; }

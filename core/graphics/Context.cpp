@@ -122,12 +122,12 @@ namespace eg {
 			return int32_t();
 		}
 
-		std::shared_ptr<Context> Context::context{ nullptr };
+		Context* Context::context{ nullptr };
 
-		std::shared_ptr<Context> Context::CreateContext(const ContextInfo& info)
+		std::unique_ptr<Context> Context::CreateContext()
 		{
 #if defined(USE_GFX_VULKAN)
-			context = std::make_shared<VKContext>(info);
+			auto contextVal = std::make_unique<VKContext>();
 #elif defined(USE_GFX_GLES3)
 #elif defined(USE_GFX_GLES2)
 #elif defined(USE_GFX_WEBGL)
@@ -135,14 +135,14 @@ namespace eg {
 #else
 			throw std::exception("A graphics backend must be selected");
 #endif
-			context->initialize();
-			std::shared_ptr<Device> device = context->createDevice();
-			context->_swapchain = std::shared_ptr<Swapchain>(device->createSwapchain());
-			
-			return context;
+			context = contextVal.get();
+			contextVal->initialize();
+			auto& device = contextVal->createDevice();
+			contextVal->_swapchain = device->createSwapchain();
+			return contextVal;
 		}
 
-		Context::Context(const ContextInfo& info) : _info(info), _isValidation(VALIDATION)
+		Context::Context() : _isValidation(VALIDATION)
 		{
 #if defined(USE_GFX_VULKAN)
 			_graphics = GraphicsAPI::VULKAN;
@@ -157,7 +157,7 @@ namespace eg {
 #endif
 		}
 
-		void Context::_createGpuSwapchain(const AppHandler& handler)
+		void Context::_createGpuSwapchain(const WindowHandler& handler)
 		{
 			_swapchain->create(handler);
 		}
@@ -171,30 +171,27 @@ namespace eg {
 			}
 		}
 
-		std::shared_ptr<Context> Context::GetContext()
+		Context* Context::GetContext()
 		{
 			return context;
 		}
 
-		void Context::onApplicationInit(const AppHandler& handler)
+		void Context::resize(uint32_t w, uint32_t h)
 		{
-			_handler = handler;
-			if(_isInit) {
-				_swapchain->destroy();
-				_commandBuffers.clear();
-			}
-			_isInit = true;
-			_createGpuSwapchain(handler);
-			_createCommandBuffers(static_cast<uint32_t>(_swapchain->getTextures().size()));
+			/*_swapchain->destroy();
+			std::vector<std::unique_ptr<CommandBuffer>>().swap(_commandBuffers);
+			_createGpuSwapchain(EagleWindow::Get()->getHandler());
+			_createCommandBuffers(static_cast<uint32_t>(_swapchain->getTextures().size()));*/
+			activate();
 		}
 
-		void Context::onResize(uint32_t w, uint32_t h)
-		{
-			_info.width = w;
-			_info.height = h;
-			_swapchain->destroy();
-			_commandBuffers.clear();
-			_createGpuSwapchain(_handler);
+		void Context::activate()
+		{	if(_isInit) {
+				_swapchain->destroy();
+				std::vector<std::unique_ptr<CommandBuffer>>().swap(_commandBuffers);
+			}
+			_isInit = true;
+			_createGpuSwapchain(EagleWindow::Get()->getHandler());
 			_createCommandBuffers(static_cast<uint32_t>(_swapchain->getTextures().size()));
 		}
 

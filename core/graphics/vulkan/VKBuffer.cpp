@@ -29,7 +29,7 @@ namespace eg {
 				_info.offset = offset;
 			}
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			resize(size);
 			vkMapMemory(device->getLogicDevice(), _mem, offset, size, 0, &_data);
 			memcpy(_data, buffer, size);
@@ -45,15 +45,15 @@ namespace eg {
 			}
 		}
 
-		void VKBuffer::copyBuffer(std::shared_ptr<Buffer> src)
+		void VKBuffer::copyBuffer(Buffer* src)
 		{
 			assert(src);
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			auto srcBuff = std::dynamic_pointer_cast<VKBuffer>(src);
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			auto srcBuff = dynamic_cast<VKBuffer*>(src);
 			CommandBufferInfo cmdInfo{};
 			cmdInfo.queueIdx = device->getQueueFamilyIndices().graphics;
-			std::shared_ptr<VKCommandBuffer> cmdBuff = std::make_shared<VKCommandBuffer>(cmdInfo);
+			auto cmdBuff = std::make_unique<VKCommandBuffer>(cmdInfo);
 			cmdBuff->beginSingleTimeCommand();
 
 			VkBufferCopy bufferCopy{};
@@ -68,7 +68,7 @@ namespace eg {
 		void VKBuffer::_create()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkBufferCreateInfo bufferCreateInfo{};
 			bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 			bufferCreateInfo.usage = static_cast<VkBufferUsageFlagBits>(_info.usage);
@@ -92,7 +92,7 @@ namespace eg {
 		void VKBuffer::_destroy()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			if (_buffer) {
 				vkDestroyBuffer(device->getLogicDevice(), _buffer, nullptr);
 			}
@@ -104,8 +104,8 @@ namespace eg {
 		VKBufferView::VKBufferView(const BufferViewInfo& info)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			auto currBuff = std::dynamic_pointer_cast<VKBuffer>(info.buffer);
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			auto currBuff = dynamic_cast<VKBuffer*>(info.buffer);
 			VkBufferViewCreateInfo _createInfo{};
 			_createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
 			_createInfo.buffer = currBuff->getVkBuffer();
@@ -118,7 +118,7 @@ namespace eg {
 		VKBufferView::~VKBufferView()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			vkDestroyBufferView(device->getLogicDevice(), _bufferView, nullptr);
 		}
 	}

@@ -17,7 +17,7 @@ namespace eg {
             DescriptorType type;
             uint32_t descriptorCount{1};
             // TODO
-            std::vector<std::shared_ptr<Sampler>> immutableSamplers{};
+            std::vector<Sampler*> immutableSamplers{};
         };
 
         struct DescriptorSetLayoutInfo

@@ -45,8 +45,8 @@ namespace eg {
 
         class RenderPass;
         struct RenderPassBeginInfo {
-            std::shared_ptr<RenderPass> renderPass{ nullptr };
-            std::shared_ptr<Framebuffer> framebuffer{ nullptr };
+            RenderPass* renderPass{ nullptr };
+            Framebuffer* framebuffer{ nullptr };
             Rect2D              renderArea{};
             ClearColor          clearColor{};
             ClearDepthStencil   clearDepthStencil{};

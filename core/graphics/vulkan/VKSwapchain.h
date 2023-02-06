@@ -26,11 +26,11 @@ namespace eg {
 		public:
 			VKSwapchain();
 			~VKSwapchain() override;
-			void create(const AppHandler& handler) override;
+			void create(const WindowHandler& handler) override;
 			void destroy() override;
 			inline uint32_t getPresentQueue() const { return _presentQueueIdx; }
 			void acquireFrame() override;
-			void presentFrame(std::shared_ptr<CommandBuffer> cmdBuff) override;
+			void presentFrame(const std::unique_ptr<CommandBuffer>& cmdBuff) override;
 		protected:
 			VkSwapchainKHR _vkSwapChain{ VK_NULL_HANDLE };
 			uint32_t _presentQueueIdx{ UINT32_MAX };
@@ -52,7 +52,7 @@ namespace eg {
 			} _semaphores;
 			std::vector<VkFence> _waitFences{};
 			uint32_t _currTextureIdx{ 0 };
-			void _initSurface(const AppHandler& handler) override;
+			void _initSurface(const WindowHandler& handler) override;
 		};
 	}
 }

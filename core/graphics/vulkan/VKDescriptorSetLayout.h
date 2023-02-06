@@ -18,9 +18,9 @@ namespace eg {
 			virtual ~VKDescriptorSetLayout();
 			void destroy() override;
 
-			inline const VkDescriptorSetLayout& getVkDescriptorSetLayout() const { return _layout; }
+			inline const VkDescriptorSetLayout& getVkDescriptorSetLayout() const { return layout; }
 		protected:
-			VkDescriptorSetLayout _layout;
+			VkDescriptorSetLayout layout;
 		};
 	}
 }

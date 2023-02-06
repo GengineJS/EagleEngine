@@ -15,17 +15,16 @@ namespace eg {
 		GraphExcutor::~GraphExcutor()
 		{
 		}
-		void GraphExcutor::execute(std::shared_ptr<GraphContext> context)
+		void GraphExcutor::execute(const std::unique_ptr<GraphContext>& context)
 		{
-			_context = context;
 			auto gfxContext = context->getGfxContext();
-			auto cmdBuffs = gfxContext->getCommandBuffers();
-			auto swapchain = gfxContext->getSwapchain();
-			auto passes = context->getRenderPasses();
+			auto& cmdBuffs = gfxContext->getCommandBuffers();
+			auto& swapchain = gfxContext->getSwapchain();
+			auto& passes = context->getRenderPasses();
 			swapchain->acquireFrame();
 			auto idx = swapchain->getFrameIdx();
 			cmdBuffs[idx]->beginCommandBuffer();
-			for (auto pass : passes) {
+			for (auto& pass : passes) {
 				if (pass->getGraphPass()->getValid()) {
 					pass->execute(idx);
 				}

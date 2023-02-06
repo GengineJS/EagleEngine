@@ -15,7 +15,7 @@ namespace eg {
 		VKDescriptorPool::VKDescriptorPool(const DescriptorPoolInfo& info): DescriptorPool(info)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkDescriptorPoolCreateInfo poolInfo{};
 			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 			std::vector<VkDescriptorPoolSize> descPoolSizes{};
@@ -29,7 +29,7 @@ namespace eg {
 			poolInfo.flags = _info.flag;
 			poolInfo.poolSizeCount = static_cast<uint32_t>(descPoolSizes.size());
 			poolInfo.pPoolSizes = descPoolSizes.data();
-			VK_CHECK_RESULT(vkCreateDescriptorPool(device->getLogicDevice(), &poolInfo, nullptr, &_pool));
+			vkCreateDescriptorPool(device->getLogicDevice(), &poolInfo, nullptr, &_pool);
 		}
 		VKDescriptorPool::~VKDescriptorPool()
 		{
@@ -38,7 +38,7 @@ namespace eg {
 		void VKDescriptorPool::destroy()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			vkDestroyDescriptorPool(device->getLogicDevice(), _pool, nullptr);
 		}
 	}

@@ -19,11 +19,11 @@ namespace eg {
 			virtual ~RenderPipeline();
 			void activate();
 			void render();
-			inline std::shared_ptr<RenderGraph> getRenderGraph() const { return _renderGraph; }
-			inline std::shared_ptr<GraphContext> getGraphContext() const { return _context; }
+			inline const std::unique_ptr<RenderGraph>& getRenderGraph() const { return _renderGraph; }
+			inline const std::unique_ptr<GraphContext>& getGraphContext() const { return _context; }
 		protected:
-			std::shared_ptr<RenderGraph> _renderGraph = std::make_shared<RenderGraph>();
-			std::shared_ptr<GraphContext> _context{ nullptr };
+			std::unique_ptr<RenderGraph> _renderGraph = std::make_unique<RenderGraph>();
+			std::unique_ptr<GraphContext> _context{ nullptr };
 			std::unique_ptr<GraphCompiler> _compiler = std::make_unique<GraphCompiler>();
 			std::unique_ptr<GraphExcutor> _excutor = std::make_unique<GraphExcutor>();
 		};

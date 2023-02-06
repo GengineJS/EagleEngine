@@ -18,9 +18,9 @@ namespace eg {
 			VKGraphicsPipeline(const GraphicsPipelineInfo& info);
 			~VKGraphicsPipeline() override;
 			void destroy() override;
-			const VkPipeline& getVkPipeline() const { return _pipeline; }
+			const VkPipeline& getVkPipeline() const { return pipeline; }
 		private:
-			VkPipeline _pipeline;
+			VkPipeline pipeline;
 			// Pipeline cache object
 			VkPipelineCache _pipelineCache{VK_NULL_HANDLE};
 			void _createPipelineCache();

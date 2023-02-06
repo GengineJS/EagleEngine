@@ -24,7 +24,7 @@ namespace eg {
 		VKCommandBuffer::VKCommandBuffer(const CommandBufferInfo& info) : CommandBuffer(info)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkCommandPoolCreateInfo cmdPoolInfo{};
 			cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 			cmdPoolInfo.flags = static_cast<VkCommandPoolCreateFlags>(info.flags);
@@ -41,8 +41,9 @@ namespace eg {
 		VKCommandBuffer::~VKCommandBuffer()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			vkFreeCommandBuffers(device->getLogicDevice(), _cmdPool, 1, &_cmdBuffer);
+			vkDestroyCommandPool(device->getLogicDevice(), _cmdPool, nullptr);
 		}
 
 		void VKCommandBuffer::reset()
@@ -62,8 +63,8 @@ namespace eg {
 
 		void VKCommandBuffer::beginRenderPass(const RenderPassBeginInfo& info)
 		{
-			auto framebuffer = std::dynamic_pointer_cast<VKFramebuffer>(info.framebuffer);
-			auto renderpass = std::dynamic_pointer_cast<VKRenderPass>(info.renderPass);
+			auto framebuffer = dynamic_cast<VKFramebuffer*>(info.framebuffer);
+			auto renderpass = dynamic_cast<VKRenderPass*>(info.renderPass);
 			CommandBuffer::beginRenderPass(info);
 			VkRenderPassBeginInfo renderPassInfo{};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -81,15 +82,15 @@ namespace eg {
 		void VKCommandBuffer::bindDescriptorSets(const BindDescriptorInfo& info)
 		{
 			assert(info.ds);
-			auto desc = std::dynamic_pointer_cast<VKDescriptorSet>(info.ds);
-			auto pipeLayout = std::dynamic_pointer_cast<VKPipelineLayout>(desc->getPipelineLayout());
+			auto desc = dynamic_cast<VKDescriptorSet*>(info.ds);
+			auto pipeLayout = dynamic_cast<VKPipelineLayout*>(desc->getPipelineLayout());
 			vkCmdBindDescriptorSets(_cmdBuffer, static_cast<VkPipelineBindPoint>(info.bindPoint),
 				pipeLayout->getVkPipelineLayout(),
 				info.firstSet, info.descriptorSetCount, desc->getVkDescriptorSets().data(), info.dynamicOffsetCount,
 				info.pDynamicOffsets.get());
 		}
 
-		void VKCommandBuffer::bindDescriptorSets(uint32_t set, std::shared_ptr<DescriptorSet> ds)
+		void VKCommandBuffer::bindDescriptorSets(uint32_t set, DescriptorSet* ds)
 		{
 			BindDescriptorInfo info(set, ds);
 			bindDescriptorSets(info);
@@ -98,11 +99,11 @@ namespace eg {
 		void VKCommandBuffer::bindPipeline(const BindPipelineInfo& info)
 		{
 			_dynamics = info.pipeline->getGraphicsPipelineInfo().dynamicInfo.dynamicStates;
-			auto pipeline = std::dynamic_pointer_cast<VKGraphicsPipeline>(info.pipeline);
+			auto pipeline = dynamic_cast<VKGraphicsPipeline*>(info.pipeline);
 			vkCmdBindPipeline(_cmdBuffer, static_cast<VkPipelineBindPoint>(info.bindPoint), pipeline->getVkPipeline());
 		}
 
-		void VKCommandBuffer::bindPipeline(std::shared_ptr<GraphicsPipeline> pipeline, PipelineBindPoint bindPoint)
+		void VKCommandBuffer::bindPipeline(GraphicsPipeline* pipeline, PipelineBindPoint bindPoint)
 		{
 			BindPipelineInfo info{};
 			info.bindPoint = bindPoint;
@@ -110,10 +111,10 @@ namespace eg {
 			bindPipeline(info);
 		}
 
-		void VKCommandBuffer::copyTexture(std::shared_ptr<Texture> srcTex, std::shared_ptr<Texture> dstTex)
+		void VKCommandBuffer::copyTexture(Texture* srcTex, Texture* dstTex)
 		{
-			auto srcVkTex = std::dynamic_pointer_cast<VKTexture>(srcTex);
-			auto dstVkTex = std::dynamic_pointer_cast<VKTexture>(dstTex);
+			auto srcVkTex = dynamic_cast<VKTexture*>(srcTex);
+			auto dstVkTex = dynamic_cast<VKTexture*>(dstTex);
 			VkImageCopy imageCopyRegion{};
 			imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			imageCopyRegion.srcSubresource.layerCount = 1;
@@ -173,14 +174,14 @@ namespace eg {
 			vkCmdSetScissor(_cmdBuffer, firstScissor, scissorCount, &rect);
 		}
 
-		void VKCommandBuffer::draw(const std::shared_ptr<VertexInput> vi)
+		void VKCommandBuffer::draw(VertexInput* vi)
 		{
 			CommandBuffer::draw(vi);
 			assert(vi);
-			auto vkVI = std::dynamic_pointer_cast<VKVertexInput>(vi);
-			VertexInputInfo inputInfo = vkVI->getVertexInputInfo();
-			auto idxBuffer = std::dynamic_pointer_cast<VKBuffer>(vkVI->getIndexBuffer());
-			auto vertBuffer = std::dynamic_pointer_cast<VKBuffer>(vkVI->getVertexBuffer());
+			auto vkVI = dynamic_cast<VKVertexInput*>(vi);
+			auto& inputInfo = vkVI->getVertexInputInfo();
+			auto idxBuffer = dynamic_cast<VKBuffer*>(vkVI->getIndexBuffer().get());
+			auto vertBuffer = dynamic_cast<VKBuffer*>(vkVI->getVertexBuffer().get());
 			assert(idxBuffer || vertBuffer);
 			if (vertBuffer) {
 				auto buff = vertBuffer->getVkBuffer();
@@ -225,7 +226,7 @@ namespace eg {
 		void VKCommandBuffer::beginSingleTimeCommand()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkCommandBufferBeginInfo beginInfo{};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -235,7 +236,7 @@ namespace eg {
 		void VKCommandBuffer::endSingleTimeCommand()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			vkEndCommandBuffer(_cmdBuffer);
 			VkSubmitInfo submitInfo{};
 			submitInfo.commandBufferCount = 1;

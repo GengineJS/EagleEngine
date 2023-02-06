@@ -12,6 +12,7 @@
 #include <graphics/vulkan/VKTools.h>
 #include <graphics/vulkan/VKDevice.h>
 #include <algorithm>
+#include <engine/EagleEngine.h>
 #if defined(USE_PLATFORM_ANDROID_KHR)
 	#include <graphics/vulkan/VKAndroid.h>
 #endif
@@ -19,34 +20,39 @@ namespace eg {
 	namespace graphics {
 		VKContext::~VKContext()
 		{
-			vkDestroyInstance(_instance, nullptr);
+			// You need to release swapchain and commandBuffer in the subclass, otherwise the release will fail
+			_commandBuffers.clear();
+			_swapchain.reset();
+			
 #if defined(USE_PLATFORM_ANDROID_KHR)
 			android::freeVulkanLibrary();
 #endif
+			// vkDestroyInstance(_instance, nullptr);
 		}
-		std::shared_ptr<Device> VKContext::createDevice()
+		const std::unique_ptr<Device>& VKContext::createDevice()
 		{
 			_device = std::make_unique<VKDevice>();
 			_device->initialize();
 			return _device;
 		}
 
-		void VKContext::onResize(uint32_t w, uint32_t h)
+		void VKContext::resize(uint32_t w, uint32_t h)
 		{
-			vkDeviceWaitIdle(std::dynamic_pointer_cast<VKDevice>(_device)->getLogicDevice());
-			Context::onResize(w, h);
+			vkDeviceWaitIdle(dynamic_cast<VKDevice*>(_device.get())->getLogicDevice());
+			Context::resize(w, h);
 		}
 
-		VKContext::VKContext(const ContextInfo& info) : Context(info) {}
+		VKContext::VKContext() : Context() {}
 
 		void VKContext::initialize()
 		{
+			const auto& info = EagleEngine::Get()->getEngineInfo();
 			VkApplicationInfo appInfo{};
 			appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
             appInfo.pNext = nullptr;
 			appInfo.apiVersion = VK_API_VERSION_1_0;
-			appInfo.applicationVersion = MAKE_FLOAT_VERSION(_info.applicationVersion);
-			appInfo.pApplicationName = _info.applicationName.c_str();
+			appInfo.applicationVersion = MAKE_FLOAT_VERSION(info.applicationVersion);
+			appInfo.pApplicationName = info.applicationName.c_str();
 			appInfo.engineVersion = MAKE_FLOAT_VERSION(ENGINE_VERSION);
 			appInfo.pEngineName = ENGINE_NAME;
 
@@ -73,12 +79,12 @@ namespace eg {
 				{
 					for (VkExtensionProperties extension : extensions)
 					{
-						_supportExtensions.emplace_back(static_cast<const char*>(extension.extensionName));
+						_supportExtensions.emplace_back(extension.extensionName);
 					}
 				}
 			}
 			// Enabled requested instance extensions
-			auto& enabledExtensions = _info.enabledExtensions;
+			auto& enabledExtensions = info.enabledExtensions;
 			if (enabledExtensions.size() > 0) {
 				for (auto& ext : enabledExtensions)
 				{

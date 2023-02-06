@@ -38,7 +38,7 @@ namespace eg {
             void update(const void* data);
             virtual void update(const void* buffer, uint64_t size, uint64_t offset) = 0;
             virtual void resize(uint64_t size) = 0;
-            virtual void copyBuffer(std::shared_ptr<Buffer> src) = 0;
+            virtual void copyBuffer(Buffer* src) = 0;
         protected:
             BufferInfo _info{};
             void* _data{nullptr};
@@ -46,7 +46,7 @@ namespace eg {
 
         struct BufferViewInfo
         {
-            std::shared_ptr<Buffer> buffer;
+            Buffer* buffer;
             Format format;
             uint64_t offset;
             uint64_t range;

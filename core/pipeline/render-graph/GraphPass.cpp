@@ -11,12 +11,12 @@
 namespace eg {
 	namespace pipeline {
 		// GraphPass
-		GraphPass::GraphPass(const std::string& name, std::shared_ptr<RenderGraph> graph, const std::function<void(std::shared_ptr<RenderVisitor>)>& callback): BaseGraphPass(name)
+		GraphPass::GraphPass(const std::string& name, const RenderGraph* graph, const std::function<void(RenderVisitor&)>& callback): BaseGraphPass(name)
 		{
 			setRenderGraph(graph);
 			setRenderFunc(callback);
 		}
-		GraphPass::GraphPass(const std::string& name, std::shared_ptr<RenderGraph> graph, const ShaderDesc& shader, const std::function<void(std::shared_ptr<RenderVisitor>)>& callback): BaseGraphPass(name)
+		GraphPass::GraphPass(const std::string& name, const RenderGraph* graph, const ShaderDesc& shader, const std::function<void(RenderVisitor&)>& callback): BaseGraphPass(name)
 		{
 			setRenderGraph(graph);
 			setShaderDesc(shader);
@@ -47,7 +47,7 @@ namespace eg {
 			case AccessState::READ_WRITE:
 				BaseGraphPass::addRenderTexture(ref, desc);
 			case AccessState::WRITE:
-				res->outputs.emplace_back(shared_from_this());
+				res->outputs.emplace_back(this);
 				outputs.emplace_back(res);
 				break;
 			default:
@@ -62,7 +62,7 @@ namespace eg {
 			auto iter = std::find(std::begin(_resources), std::end(_resources), buff);
 			if (iter == std::end(_resources))
 			{
-				res->inputs.emplace_back(shared_from_this());
+				res->inputs.emplace_back(this);
 				inputs.emplace_back(res);
 				_resources.emplace_back(buff);
 			}
@@ -75,12 +75,12 @@ namespace eg {
 			auto iter = std::find(std::begin(_resources), std::end(_resources), ref);
 			if (iter == std::end(_resources))
 			{
-				res->inputs.emplace_back(shared_from_this());
+				res->inputs.emplace_back(this);
 				inputs.emplace_back(res);
 				_resources.emplace_back(ref);
 			}
 		}
-		inline void BaseGraphPass::setRenderFunc(const std::function<void(std::shared_ptr<RenderVisitor>)>& callback)
+		inline void BaseGraphPass::setRenderFunc(const std::function<void(RenderVisitor&)>& callback)
 		{
 			_func = callback;
 		}
@@ -93,12 +93,12 @@ namespace eg {
 			_name = name;
 			_isOnScreen = isOnScreen;
 		}
-		GraphScreenPass::GraphScreenPass(const std::string& name, std::shared_ptr<RenderGraph> graph, const std::function<void(std::shared_ptr<RenderVisitor>)>& callback): BaseGraphPass(name, true)
+		GraphScreenPass::GraphScreenPass(const std::string& name, const RenderGraph* graph, const std::function<void(RenderVisitor&)>& callback): BaseGraphPass(name, true)
 		{
 			setRenderGraph(graph);
 			setRenderFunc(callback);
 		}
-		GraphScreenPass::GraphScreenPass(const std::string& name, std::shared_ptr<RenderGraph> graph, const ShaderDesc& shader, const std::function<void(std::shared_ptr<RenderVisitor>)>& callback): BaseGraphPass(name, true)
+		GraphScreenPass::GraphScreenPass(const std::string& name, const RenderGraph* graph, const ShaderDesc& shader, const std::function<void(RenderVisitor&)>& callback): BaseGraphPass(name, true)
 		{
 			setRenderGraph(graph);
 			setShaderDesc(shader);

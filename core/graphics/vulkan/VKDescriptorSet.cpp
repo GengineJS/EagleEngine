@@ -29,26 +29,27 @@ namespace eg {
 		void VKDescriptorSet::destroy()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
-			auto descPool = std::dynamic_pointer_cast<VKDescriptorPool>(_info.descPool);
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			auto descPool = dynamic_cast<VKDescriptorPool*>(_info.descPool);
 			vkFreeDescriptorSets(device->getLogicDevice(), descPool->getVkDescriptorPool(), static_cast<uint32_t>(_descriptorSets.size()), _descriptorSets.data());
+			_descriptorSets.clear();
 		}
 
 		void VKDescriptorSet::create()
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkDescriptorSetAllocateInfo allocInfo{};
 			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			std::vector<VkDescriptorSetLayout> layouts{};
 			for (auto descLayout: _info.setLayouts) {
-				auto  setLayout = std::dynamic_pointer_cast<VKDescriptorSetLayout>(descLayout);
+				auto  setLayout = dynamic_cast<VKDescriptorSetLayout*>(descLayout);
 				layouts.emplace_back(setLayout->getVkDescriptorSetLayout());
 			}
 			allocInfo.pSetLayouts = layouts.data();
 			allocInfo.descriptorSetCount = _info.descSetCount;
 			assert(_info.descPool != nullptr);
-			allocInfo.descriptorPool = std::dynamic_pointer_cast<VKDescriptorPool>(_info.descPool)->getVkDescriptorPool();
+			allocInfo.descriptorPool = dynamic_cast<VKDescriptorPool*>(_info.descPool)->getVkDescriptorPool();
 			_descriptorSets.resize(_info.descSetCount);
 			VK_CHECK_RESULT(vkAllocateDescriptorSets(device->getLogicDevice(), &allocInfo, _descriptorSets.data()));
 			PipelineLayoutInfo pipInfo{};
@@ -72,7 +73,7 @@ namespace eg {
 					descriptorWrites.at(idx).descriptorType = static_cast<VkDescriptorType>(descWrite.descType);
 					if (descWrite.pBuff) {
 						VkDescriptorBufferInfo buffInfo{};
-						auto buf = std::dynamic_pointer_cast<VKBuffer>(descWrite.pBuff);
+						auto buf = dynamic_cast<VKBuffer*>(descWrite.pBuff);
 						buffInfo.buffer = buf->getVkBuffer();
 						buffInfo.offset = descWrite.pBuff->getBufferInfo().offset;
 						buffInfo.range = descWrite.pBuff->getBufferInfo().size;
@@ -80,17 +81,17 @@ namespace eg {
 					}
 					else if (descWrite.pTex) {
 						VkDescriptorImageInfo imageInfo{};
-						auto tex = std::dynamic_pointer_cast<VKTexture>(descWrite.pTex);
+						auto tex = dynamic_cast<VKTexture*>(descWrite.pTex);
 						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 						imageInfo.imageView = tex->getVkImageView();
-						auto sampler = std::dynamic_pointer_cast<VKSampler>(descWrite.pTex->getSampler());
+						auto sampler = dynamic_cast<VKSampler*>(descWrite.pTex->getSampler().get());
 						imageInfo.sampler = sampler->getVkSampler();
 						descriptorWrites.at(idx).pImageInfo = &imageInfo;
 					}
 					idx++;
 				}
 				auto context = Context::GetContext();
-				auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+				auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 				vkUpdateDescriptorSets(device->getLogicDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 			}
 		}

@@ -14,7 +14,7 @@ namespace eg {
 		VKShaderStage::VKShaderStage(const std::vector<ShaderStageInfo>& infos) : ShaderStage(infos)
 		{
 			auto context = Context::GetContext();
-			auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
 			VkShaderModuleCreateInfo moduleInfo{};
 			moduleInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			if (_vertexInfo.pCode) {
@@ -63,6 +63,12 @@ namespace eg {
 
 		VKShaderStage::~VKShaderStage()
 		{
+			auto context = Context::GetContext();
+			auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
+			for (auto& stage: _stages) {
+				vkDestroyShaderModule(device->getLogicDevice(), stage.module, nullptr);
+			}
+			_stages.clear();
 		}
 
 		void VKShaderStage::_createShaderStage(const ShaderStageInfo& info, VkPipelineShaderStageCreateInfo& stage, const VkShaderModule& module)

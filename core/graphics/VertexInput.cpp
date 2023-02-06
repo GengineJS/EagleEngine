@@ -42,8 +42,8 @@ namespace eg {
 				VertexComponent::Joint0,
 				VertexComponent::Weight0
 				});
-			const std::shared_ptr<Context> context = Context::GetContext();
-			std::shared_ptr<Device> device = context->getDevice();
+			auto context = Context::GetContext();
+			auto& device = context->getDevice();
 			size_t indexBufferSize = _indexData.size() * sizeof(uint32_t);
 			size_t vertexBufferSize = _vertexData.size() * sizeof(Vertex);
 			if (_indexData.size() > 0) {
@@ -51,27 +51,27 @@ namespace eg {
 				idxBuffInfo.memProp = MemoryPropertyFlag::HOST_VISIBLE | MemoryPropertyFlag::HOST_COHERENT;
 				idxBuffInfo.usage = BufferUsageFlag::TRANSFER_SRC;
 				idxBuffInfo.size = indexBufferSize;
-				std::shared_ptr<Buffer> idxStagingBuffer = device->createBuffer(idxBuffInfo);
+				auto idxStagingBuffer = device->createBuffer(idxBuffInfo);
 				idxStagingBuffer->update(_indexData.data());
 				BufferInfo idxDstBuffInfo{};
 				idxDstBuffInfo.memProp = MemoryPropertyFlag::DEVICE_LOCAL;
 				idxDstBuffInfo.usage = BufferUsageFlag::INDEX | BufferUsageFlag::TRANSFER_DST;
 				idxDstBuffInfo.size = indexBufferSize;
 				_indexBuffer = device->createBuffer(idxDstBuffInfo);
-				_indexBuffer->copyBuffer(idxStagingBuffer);
+				_indexBuffer->copyBuffer(idxStagingBuffer.get());
 			}
 			BufferInfo vertBuffInfo{};
 			vertBuffInfo.memProp = MemoryPropertyFlag::HOST_VISIBLE | MemoryPropertyFlag::HOST_COHERENT;
 			vertBuffInfo.usage = BufferUsageFlag::TRANSFER_SRC;
 			vertBuffInfo.size = vertexBufferSize;
-			std::shared_ptr<Buffer> vertStagingBuffer = device->createBuffer(vertBuffInfo);
+			auto vertStagingBuffer = device->createBuffer(vertBuffInfo);
 			vertStagingBuffer->update(_vertexData.data());
 			BufferInfo vertDstBuffInfo{};
 			vertDstBuffInfo.memProp = MemoryPropertyFlag::DEVICE_LOCAL;
 			vertDstBuffInfo.usage = BufferUsageFlag::VERTEX | BufferUsageFlag::TRANSFER_DST;
 			vertDstBuffInfo.size = vertexBufferSize;
 			_vertexBuffer = device->createBuffer(vertDstBuffInfo);
-			_vertexBuffer->copyBuffer(vertStagingBuffer);
+			_vertexBuffer->copyBuffer(vertStagingBuffer.get());
 		}
 
 		VertexInputBindingInfo VertexInput::_inputBindingDescription(uint32_t binding) {

@@ -14,15 +14,15 @@ namespace eg {
         class RenderPass;
         struct FramebufferInfo {
             FramebufferInfo() = default;
-            FramebufferInfo(uint32_t w, uint32_t h, std::shared_ptr<RenderPass> renderPass,
-                const std::vector<std::shared_ptr<Texture>>& attachments) {
+            FramebufferInfo(uint32_t w, uint32_t h, const RenderPass* renderPass,
+                std::vector<Texture*>&& attachments) {
                 width = w;
                 height = h;
-                this->renderPass = renderPass;
-                this->pAttachments = attachments;
+                this->renderPass = const_cast<RenderPass*>(renderPass);
+                this->pAttachments = std::move(attachments);
             }
-            std::shared_ptr<RenderPass> renderPass{ nullptr };
-            std::vector<std::shared_ptr<Texture>> pAttachments{};
+            RenderPass* renderPass{ nullptr };
+            std::vector<Texture*> pAttachments{};
             uint32_t width{0};
             uint32_t height{0};
             uint32_t layers{ 1 };

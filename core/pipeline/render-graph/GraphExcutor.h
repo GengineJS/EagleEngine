@@ -14,10 +14,10 @@ namespace eg {
 		public:
 			GraphExcutor();
 			virtual ~GraphExcutor();
-			void execute(std::shared_ptr<GraphContext> context);
+			void execute(const std::unique_ptr<GraphContext>& context);
 		protected:
 			bool _isExe{ false };
-			std::shared_ptr<GraphContext> _context{ nullptr };
+			GraphContext* _context{ nullptr };
 
 		};
 	}

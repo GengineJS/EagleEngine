@@ -14,10 +14,10 @@ namespace eg {
 		public:
 			GraphCompiler();
 			virtual ~GraphCompiler();
-			void compie(std::shared_ptr<GraphContext> context);
+			void compie(const std::unique_ptr<GraphContext>& context);
 		protected:
-			std::shared_ptr<GraphContext> _context{ nullptr };
-			void _linkPasses(std::shared_ptr<BaseGraphPass> pass);
+			GraphContext* _context{ nullptr };
+			void _linkPasses(const BaseGraphPass*);
 		};
 	}
 }

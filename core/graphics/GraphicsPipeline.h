@@ -43,7 +43,7 @@ namespace eg {
         struct MultiSampleStateInfo {
             SampleCountFlag rasterizationSamples{ SampleCountFlag::COUNT_1 };
             bool isSampleShading{ false };
-            std::shared_ptr<SampleMask> sampleMask{ nullptr };
+            SampleMask* sampleMask{ nullptr };
             float minSampleShading{1.f};
             bool isAlphaToCoverage{ false };
             bool isAlphaToOne{ false };
@@ -97,18 +97,18 @@ namespace eg {
         };
         struct GraphicsPipelineInfo
         {
-            std::shared_ptr<ShaderStage> shader{ nullptr };
-            std::shared_ptr<PipelineLayout> pipelineLayout{ nullptr };
-            std::shared_ptr<VertexInput> vertexInput{nullptr};
+            ShaderStage* shader{ nullptr };
+            PipelineLayout* pipelineLayout{ nullptr };
+            VertexInput* vertexInput{nullptr};
             RasterizationStateInfo raster{};
             MultiSampleStateInfo multiSample{};
             DepthStencilStateInfo depthStencil{};
             ColorBlendStateInfo colorBlend{};
             DynamicStateInfo dynamicInfo{};
-            std::shared_ptr<RenderPass> renderPass{nullptr};
+            RenderPass* renderPass{nullptr};
             uint32_t subpass{ 0 };
             int32_t basePipelineIdx{-1};
-            class std::shared_ptr<class GraphicsPipeline> basePipeline{ nullptr };
+            class GraphicsPipeline* basePipeline{ nullptr };
         };
 
         class GraphicsPipeline

@@ -44,7 +44,7 @@ namespace eg {
 		{
 			_isSetDynScissor = true;
 		}
-		void CommandBuffer::draw(const std::shared_ptr<VertexInput> vi)
+		void CommandBuffer::draw(VertexInput* vi)
 		{
 			auto dynViewport = std::find(_dynamics.begin(), _dynamics.end(), DynamicState::VIEWPORT);
 			if (dynViewport != _dynamics.end() && !_isSetDynViewport) {

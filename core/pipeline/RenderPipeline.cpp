@@ -18,7 +18,10 @@ namespace eg {
 		void RenderPipeline::activate()
 		{
 			assert(_renderGraph->isPrepare());
-			_context = std::make_shared<GraphContext>(_renderGraph);
+			if (_context) {
+				_context.reset();
+			}
+			_context = std::make_unique<GraphContext>(_renderGraph);
 			_compiler->compie(_context);
 		}
 		void RenderPipeline::render()

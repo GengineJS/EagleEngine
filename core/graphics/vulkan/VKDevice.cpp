@@ -25,6 +25,7 @@
 #include <graphics/vulkan/VKPipelineLayout.h>
 #include <graphics/vulkan/VKGraphicsPipeline.h>
 #include <utils/FileUtils.h>
+#include <engine/EagleEngine.h>
 namespace eg {
 	namespace graphics {
 		VKDevice::VKDevice()
@@ -33,11 +34,12 @@ namespace eg {
 
 		VKDevice::~VKDevice()
 		{
+			vkDestroyDevice(_logicDevice, nullptr);
 		}
 
 		bool VKDevice::initialize()
 		{
-			auto vkContext = std::dynamic_pointer_cast<VKContext>(Context::GetContext());
+			auto vkContext = dynamic_cast<VKContext*>(Context::GetContext());
 			uint32_t gpuCount = 0;
 			VK_CHECK_RESULT(vkEnumeratePhysicalDevices(vkContext->getVkInstance(), &gpuCount, nullptr));
 			if (gpuCount == 0) {
@@ -73,7 +75,7 @@ namespace eg {
 					}
 				}
 			}
-			auto& enabledExtensions = Context::GetContext()->getContextInfo().enabledExtensions;
+			auto& enabledExtensions = EagleEngine::Get()->getEngineInfo().enabledExtensions;
 			if (enabledExtensions.size() > 0) {
 				for (auto& ext : enabledExtensions)
 				{
@@ -92,137 +94,137 @@ namespace eg {
 		{
 		}
 
-		std::shared_ptr<GraphicsPipeline> VKDevice::createGraphicsPipeline(const GraphicsPipelineInfo& info)
+		std::unique_ptr<GraphicsPipeline> VKDevice::createGraphicsPipeline(const GraphicsPipelineInfo& info)
 		{
-			return std::make_shared<VKGraphicsPipeline>(info);
+			return std::make_unique<VKGraphicsPipeline>(info);
 		}
 
-		std::shared_ptr<Swapchain> VKDevice::createSwapchain()
+		std::unique_ptr<Swapchain> VKDevice::createSwapchain()
 		{
-			return std::make_shared<VKSwapchain>();
+			return std::make_unique<VKSwapchain>();
 		}
 
-		std::shared_ptr<CommandBuffer> VKDevice::createCommandBuffer(const CommandBufferInfo& info)
+		std::unique_ptr<CommandBuffer> VKDevice::createCommandBuffer(const CommandBufferInfo& info)
 		{
-			return std::make_shared<VKCommandBuffer>(info);
+			return std::make_unique<VKCommandBuffer>(info);
 		}
 
-		std::shared_ptr<Texture> VKDevice::createTexture(const TextureInfo& info)
+		std::unique_ptr<Texture> VKDevice::createTexture(const TextureInfo& info)
 		{
-			auto tex = std::make_shared<VKTexture>(info);
+			auto tex = std::make_unique<VKTexture>(info);
 			tex->create();
 			return tex;
 		}
 
-		std::shared_ptr<Texture> VKDevice::createTexture(const TextureInfo& info, VkImage img)
+		std::unique_ptr<Texture> VKDevice::createTexture(const TextureInfo& info, VkImage img)
 		{
-			auto tex = std::make_shared<VKTexture>(info);
+			auto tex = std::make_unique<VKTexture>(info);
 			tex->create(img);
 			return tex;
 		}
 
-		std::shared_ptr<Texture> VKDevice::loadTexture(const std::string& filePath)
+		std::unique_ptr<Texture> VKDevice::loadTexture(const std::string& filePath)
 		{
-			auto tex = std::make_shared<VKTexture>();
+			auto tex = std::make_unique<VKTexture>();
 			tex->loadTexture(filePath);
 			return tex;
 		}
 
-		std::shared_ptr<Buffer> VKDevice::createBuffer(const BufferInfo& info)
+		std::unique_ptr<Buffer> VKDevice::createBuffer(const BufferInfo& info)
 		{
-			return std::make_shared<VKBuffer>(info);
+			return std::make_unique<VKBuffer>(info);
 		}
 
-		std::shared_ptr<BufferView> VKDevice::createBufferView(const BufferViewInfo& info)
+		std::unique_ptr<BufferView> VKDevice::createBufferView(const BufferViewInfo& info)
 		{
-			return std::make_shared<VKBufferView>(info);
+			return std::make_unique<VKBufferView>(info);
 		}
 
-		std::shared_ptr<ShaderStage> VKDevice::createShader(const ShaderDesc& info)
+		std::unique_ptr<ShaderStage> VKDevice::createShader(const ShaderDesc& info)
 		{
 			std::vector<ShaderStageInfo> infos{};
 			for (auto curShader: info.shaders) {
 				infos.emplace_back(utils::FileUtils::loadSPIRVShader(curShader.first, curShader.second));
 			}
-			return std::make_shared<VKShaderStage>(infos);
+			return std::make_unique<VKShaderStage>(infos);
 		}
 
-		std::shared_ptr<Framebuffer> VKDevice::createFramebuffer(const FramebufferInfo& info)
+		std::unique_ptr<Framebuffer> VKDevice::createFramebuffer(const FramebufferInfo& info)
 		{
-			return std::make_shared<VKFramebuffer>(info);
+			return std::make_unique<VKFramebuffer>(info);
 		}
 
-		std::shared_ptr<RenderPass> VKDevice::createRenderPass(const RenderPassInfo& info)
+		std::unique_ptr<RenderPass> VKDevice::createRenderPass(const RenderPassInfo& info)
 		{
-			return std::make_shared<VKRenderPass>(info);
+			return std::make_unique<VKRenderPass>(info);
 		}
 
-		std::shared_ptr<VertexInput> VKDevice::createVertexInput(const VertexInputInfo& info)
+		std::unique_ptr<VertexInput> VKDevice::createVertexInput(const VertexInputInfo& info)
 		{
-			return std::make_shared<VKVertexInput>(info);
+			return std::make_unique<VKVertexInput>(info);
 		}
 
-		std::shared_ptr<InputAssembler> VKDevice::createInputAssembler(const InputAssemblerInfo& info)
+		std::unique_ptr<InputAssembler> VKDevice::createInputAssembler(const InputAssemblerInfo& info)
 		{
-			return std::make_shared<VKInputAssembler>(info);
+			return std::make_unique<VKInputAssembler>(info);
 		}
 
-		std::shared_ptr<Sampler> VKDevice::createSampler(const SamplerInfo& info)
+		std::unique_ptr<Sampler> VKDevice::createSampler(const SamplerInfo& info)
 		{
-			return std::make_shared<VKSampler>(info);
+			return std::make_unique<VKSampler>(info);
 		}
 
-		std::shared_ptr<DescriptorSetLayout> VKDevice::createDescriptorSetLayout(const DescriptorSetLayoutInfo& info)
+		std::unique_ptr<DescriptorSetLayout> VKDevice::createDescriptorSetLayout(const DescriptorSetLayoutInfo& info)
 		{
-			return std::make_shared<VKDescriptorSetLayout>(info);
+			return std::make_unique<VKDescriptorSetLayout>(info);
 		}
 
-		std::shared_ptr<DescriptorPool> VKDevice::createDescriptorPool(const DescriptorPoolInfo& info)
+		std::unique_ptr<DescriptorPool> VKDevice::createDescriptorPool(const DescriptorPoolInfo& info)
 		{
-			return std::make_shared<VKDescriptorPool>(info);
+			return std::make_unique<VKDescriptorPool>(info);
 		}
 
-		std::shared_ptr<DescriptorSet> VKDevice::createDescriptorSet()
+		std::unique_ptr<DescriptorSet> VKDevice::createDescriptorSet()
 		{
-			auto res = std::make_shared<VKDescriptorSet>();
+			auto res = std::make_unique<VKDescriptorSet>();
 			return res;
 		}
 
-		std::shared_ptr<DescriptorSet> VKDevice::createDescriptorSet(const std::unordered_map<uint32_t, std::shared_ptr<Buffer>>& buffers) {
-			auto res = std::make_shared<VKDescriptorSet>();
+		std::unique_ptr<DescriptorSet> VKDevice::createDescriptorSet(const std::unordered_map<uint32_t, Buffer*>& buffers) {
+			auto res = std::make_unique<VKDescriptorSet>();
 			res->setBuffers(buffers);
 			res->flush();
 			return res;
 		}
 
-		std::shared_ptr<DescriptorSet> VKDevice::createDescriptorSet(const std::unordered_map<uint32_t, std::shared_ptr<Texture>>& textures)
+		std::unique_ptr<DescriptorSet> VKDevice::createDescriptorSet(const std::unordered_map<uint32_t, Texture*>& textures)
 		{
-			auto res = std::make_shared<VKDescriptorSet>();
+			auto res = std::make_unique<VKDescriptorSet>();
 			res->setTextures(textures);
 			res->flush();
 			return res;
 		}
 
-		std::shared_ptr<DescriptorSet> VKDevice::createDescriptorSet(const DescriptorSetInfo& info)
+		std::unique_ptr<DescriptorSet> VKDevice::createDescriptorSet(const DescriptorSetInfo& info)
 		{
-			return std::make_shared<VKDescriptorSet>(info);
+			return std::make_unique<VKDescriptorSet>(info);
 		}
 
-		std::shared_ptr<DescriptorSet> VKDevice::createDescriptorSet(const std::unordered_map<uint32_t, std::shared_ptr<Buffer>>& buffs, const std::unordered_map<uint32_t, std::shared_ptr<Texture>>& texs)
+		std::unique_ptr<DescriptorSet> VKDevice::createDescriptorSet(const std::unordered_map<uint32_t, Buffer*>& buffs, const std::unordered_map<uint32_t, Texture*>& texs)
 		{
-			auto res = std::make_shared<VKDescriptorSet>();
+			auto res = std::make_unique<VKDescriptorSet>();
 			res->setBuffers(buffs);
 			res->setTextures(texs);
 			res->flush();
 			return res;
 		}
 
-		std::shared_ptr<PipelineLayout> VKDevice::createPipelineLayout(const PipelineLayoutInfo& info)
+		std::unique_ptr<PipelineLayout> VKDevice::createPipelineLayout(const PipelineLayoutInfo& info)
 		{
-			return  std::make_shared<VKPipelineLayout>(info);
+			return  std::make_unique<VKPipelineLayout>(info);
 		}
 
-		std::shared_ptr<PipelineLayout> VKDevice::createPipelineLayout(const std::vector<std::shared_ptr<DescriptorSetLayout>>& pSetLayouts)
+		std::unique_ptr<PipelineLayout> VKDevice::createPipelineLayout(const std::vector<DescriptorSetLayout*>& pSetLayouts)
 		{
 			PipelineLayoutInfo info{};
 			info.pSetLayouts = pSetLayouts;
@@ -274,10 +276,10 @@ namespace eg {
 
 		void VKDevice::_createLogicDevice()
 		{
-			const ContextInfo& info = Context::GetContext()->getContextInfo();
+			const auto& info = EagleEngine::Get()->getEngineInfo();
 			bool useSwapChain = info.useSwapchain;
 
-			VkQueueFlags requestedQueueTypes = static_cast<VkQueueFlags>(info.queue);
+			VkQueueFlags requestedQueueTypes = static_cast<VkQueueFlags>(QueueFlag::GRAPHICS | QueueFlag::COMPUTE);
 			std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
 
 			const float defaultQueuePriority(0.0f);
@@ -349,7 +351,7 @@ namespace eg {
 			if (_deviceCreatepNextChain) {
 				physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 				physicalDeviceFeatures2.features = _enabledFeatures;
-				physicalDeviceFeatures2.pNext = _deviceCreatepNextChain.get();
+				physicalDeviceFeatures2.pNext = _deviceCreatepNextChain;
 				deviceCreateInfo.pEnabledFeatures = nullptr;
 				deviceCreateInfo.pNext = &physicalDeviceFeatures2;
 			}

@@ -16,7 +16,7 @@ namespace graphics {
 bool getSupportedDepthFormat(Format *depthFormat) {
     auto context = Context::GetContext();
 #if defined(USE_GFX_VULKAN)
-    auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+    auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
     return getVKSupportedDepthFormat(device->getPhysicalDevice(), reinterpret_cast<VkFormat*>(depthFormat));
 #endif
     return false;
@@ -25,7 +25,7 @@ bool getSupportedDepthFormat(Format *depthFormat) {
 bool isSupportedDepthFormat(Format depthFormat){
     auto context = Context::GetContext();
 #if defined(USE_GFX_VULKAN)
-    auto device = std::dynamic_pointer_cast<VKDevice>(context->getDevice());
+    auto device = dynamic_cast<VKDevice*>(context->getDevice().get());
     return isVKSupportedDepthFormat(device->getPhysicalDevice(), static_cast<VkFormat>(depthFormat));
 #endif
     return false;

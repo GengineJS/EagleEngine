@@ -17,9 +17,9 @@ namespace eg {
 			VKPipelineLayout(const PipelineLayoutInfo& info);
 			~VKPipelineLayout() override;
 			void destroy() override;
-			const VkPipelineLayout& getVkPipelineLayout() const { return _layout; }
+			const VkPipelineLayout& getVkPipelineLayout() const { return layout; }
 		protected:
-			VkPipelineLayout _layout;
+			VkPipelineLayout layout;
 		};
 	}
 }

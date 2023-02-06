@@ -81,10 +81,10 @@ namespace eg {
             virtual void destroy() = 0;
             void createInputAssembler();
             inline const VertexInputInfo& getVertexInputInfo() const { return _info; }
-            inline std::shared_ptr<InputAssembler> getInputAssembler() const { return _assembler; }
+            inline const std::unique_ptr<InputAssembler>& getInputAssembler() const { return _assembler; }
             inline const std::vector<Vertex>& getVertexData() const { return _vertexData; }
-            inline std::shared_ptr<Buffer> getVertexBuffer() const { return _vertexBuffer; }
-            inline std::shared_ptr<Buffer> getIndexBuffer() const { return _indexBuffer; }
+            inline const std::unique_ptr<Buffer>& getVertexBuffer() const { return _vertexBuffer; }
+            inline const std::unique_ptr<Buffer>& getIndexBuffer() const { return _indexBuffer; }
             inline const std::vector<uint32_t>& getIndexData() const { return _indexData; }
 		protected:
             VertexInputBindingInfo _vertexInputBindingDescription;
@@ -94,13 +94,13 @@ namespace eg {
             std::vector<VertexInputAttributeInfo> _inputAttributeDescriptions(uint32_t binding, const std::vector<VertexComponent> components);
             /** @brief Returns the default pipeline vertex input state create info structure for the requested vertex components */
             void _createPipelineVertexInputState(const std::vector<VertexComponent> components);
-            std::shared_ptr<InputAssembler> _assembler{ nullptr };
+            std::unique_ptr<InputAssembler> _assembler{ nullptr };
             VertexInputInfo _info{};
             VertexInputStateInfo _stateInfo{};
             std::vector<Vertex> _vertexData{};
-            std::shared_ptr<Buffer> _vertexBuffer{ nullptr };
+            std::unique_ptr<Buffer> _vertexBuffer{ nullptr };
             std::vector<uint32_t> _indexData{};
-            std::shared_ptr<Buffer> _indexBuffer{ nullptr };
+            std::unique_ptr<Buffer> _indexBuffer{ nullptr };
 		};
 	}
 }

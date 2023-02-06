@@ -17,29 +17,29 @@ namespace eg {
 			~VKDevice() override;
 			bool initialize() override;
 			void destroy() override;
-			std::shared_ptr<GraphicsPipeline> createGraphicsPipeline(const GraphicsPipelineInfo& info) override;
-			std::shared_ptr<Swapchain> createSwapchain() override;
-			std::shared_ptr<CommandBuffer> createCommandBuffer(const CommandBufferInfo& info) override;
-			std::shared_ptr<Texture> createTexture(const TextureInfo& info) override;
-			std::shared_ptr<Texture> createTexture(const TextureInfo& info, VkImage img);
-			std::shared_ptr<Texture> loadTexture(const std::string& filePath) override;
-			std::shared_ptr<Buffer> createBuffer(const BufferInfo& info) override;
-			std::shared_ptr<BufferView> createBufferView(const BufferViewInfo& info) override;
-			std::shared_ptr<ShaderStage> createShader(const ShaderDesc& info) override;
-			std::shared_ptr<Framebuffer> createFramebuffer(const FramebufferInfo& info) override;
-			std::shared_ptr<RenderPass> createRenderPass(const RenderPassInfo& info) override;
-			std::shared_ptr<VertexInput> createVertexInput(const VertexInputInfo& info) override;
-			std::shared_ptr<InputAssembler> createInputAssembler(const InputAssemblerInfo& info) override;
-			std::shared_ptr<Sampler> createSampler(const SamplerInfo& info) override;
-			std::shared_ptr<DescriptorSetLayout> createDescriptorSetLayout(const DescriptorSetLayoutInfo& info) override;
-			std::shared_ptr<DescriptorPool> createDescriptorPool(const DescriptorPoolInfo& info) override;
-			std::shared_ptr<DescriptorSet> createDescriptorSet() override;
-			std::shared_ptr<DescriptorSet> createDescriptorSet(const std::unordered_map<uint32_t, std::shared_ptr<Buffer>>&) override;
-			std::shared_ptr<DescriptorSet> createDescriptorSet(const std::unordered_map<uint32_t, std::shared_ptr<Texture>>&) override;
-			std::shared_ptr<DescriptorSet> createDescriptorSet(const DescriptorSetInfo& info) override;
-			std::shared_ptr<DescriptorSet> createDescriptorSet(const std::unordered_map<uint32_t, std::shared_ptr<Buffer>>&, const std::unordered_map<uint32_t, std::shared_ptr<Texture>>&) override;
-			std::shared_ptr<PipelineLayout> createPipelineLayout(const PipelineLayoutInfo& info) override;
-			std::shared_ptr<PipelineLayout> createPipelineLayout(const std::vector<std::shared_ptr<DescriptorSetLayout>>& pSetLayouts) override;
+			std::unique_ptr<GraphicsPipeline> createGraphicsPipeline(const GraphicsPipelineInfo& info) override;
+			std::unique_ptr<Swapchain> createSwapchain() override;
+			std::unique_ptr<CommandBuffer> createCommandBuffer(const CommandBufferInfo& info) override;
+			std::unique_ptr<Texture> createTexture(const TextureInfo& info) override;
+			std::unique_ptr<Texture> createTexture(const TextureInfo& info, VkImage img);
+			std::unique_ptr<Texture> loadTexture(const std::string& filePath) override;
+			std::unique_ptr<Buffer> createBuffer(const BufferInfo& info) override;
+			std::unique_ptr<BufferView> createBufferView(const BufferViewInfo& info) override;
+			std::unique_ptr<ShaderStage> createShader(const ShaderDesc& info) override;
+			std::unique_ptr<Framebuffer> createFramebuffer(const FramebufferInfo& info) override;
+			std::unique_ptr<RenderPass> createRenderPass(const RenderPassInfo& info) override;
+			std::unique_ptr<VertexInput> createVertexInput(const VertexInputInfo& info) override;
+			std::unique_ptr<InputAssembler> createInputAssembler(const InputAssemblerInfo& info) override;
+			std::unique_ptr<Sampler> createSampler(const SamplerInfo& info) override;
+			std::unique_ptr<DescriptorSetLayout> createDescriptorSetLayout(const DescriptorSetLayoutInfo& info) override;
+			std::unique_ptr<DescriptorPool> createDescriptorPool(const DescriptorPoolInfo& info) override;
+			std::unique_ptr<DescriptorSet> createDescriptorSet() override;
+			std::unique_ptr<DescriptorSet> createDescriptorSet(const std::unordered_map<uint32_t, Buffer*>&) override;
+			std::unique_ptr<DescriptorSet> createDescriptorSet(const std::unordered_map<uint32_t, Texture*>&) override;
+			std::unique_ptr<DescriptorSet> createDescriptorSet(const DescriptorSetInfo& info) override;
+			std::unique_ptr<DescriptorSet> createDescriptorSet(const std::unordered_map<uint32_t, Buffer*>&, const std::unordered_map<uint32_t, Texture*>&) override;
+			std::unique_ptr<PipelineLayout> createPipelineLayout(const PipelineLayoutInfo& info) override;
+			std::unique_ptr<PipelineLayout> createPipelineLayout(const std::vector<DescriptorSetLayout*>& pSetLayouts) override;
 
 			inline const VkPhysicalDevice& getPhysicalDevice()const { return _physicalDevice; }
 			inline const VkDevice& getLogicDevice()const { return _logicDevice; }
@@ -60,7 +60,7 @@ namespace eg {
 			VkPhysicalDeviceFeatures _enabledFeatures{};
 			VkPhysicalDeviceMemoryProperties _deviceMemoryProperties;
 			std::vector<VkQueueFamilyProperties> _queueFamilyProperties;
-			std::shared_ptr<void> _deviceCreatepNextChain{ nullptr };
+			void* _deviceCreatepNextChain{ nullptr };
 			// Set to true when the debug marker extension is detected*
 			bool _enableDebugMarkers{ false };
 			// Handle to the device graphics queue that command buffers are submitted to

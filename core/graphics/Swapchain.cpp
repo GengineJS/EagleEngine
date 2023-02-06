@@ -13,7 +13,6 @@ namespace eg {
 		}
 
 		void Swapchain::destroy() {
-			_surface = nullptr;
 			_destroyTextures();
 		}
 
@@ -24,7 +23,8 @@ namespace eg {
 
 		void Swapchain::_destroyTextures()
 		{
-			_textures.clear();
+			textures.clear();
+			std::vector<std::unique_ptr<Texture>>().swap(textures);
 		}
 	}
 }
